@@ -182,11 +182,11 @@ public:
 
 private:
     friend class cereal::access;
-    template<class Archive> void serialize(Archive &ar)
-    {
-        ar(cereal::base_class<ObjectBase>(this));
-        ar(m_check_sum, m_connectors_cnt);
-    }
+    //template<class Archive> void serialize(Archive &ar)
+    //{
+    //    ar(cereal::base_class<ObjectBase>(this));
+    //    ar(m_check_sum, m_connectors_cnt);
+    //}
 };
 
 
