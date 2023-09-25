@@ -19,6 +19,7 @@ namespace spread
         PROGRESS_RETURN_FINISH_CUR_NEXT(tracer, back_end, nullptr, "");
 
         Slic3r::TriangleMesh* slic3rMesh = constructTriangleMeshFromIndexTriangleSet(indexedTriangleSet, tracer);
+
 		return slic3rMesh;
 	}
 
@@ -95,7 +96,7 @@ namespace spread
         stl_get_size(&stl);
         PROGRESS_RETURN_FINISH_CUR_NEXT(tracer, back_end, nullptr, "");
 
-        //slic3rMesh->require_shared_vertices(tracer);
+        slic3rMesh->require_shared_vertices();
         JUDGE_PROGRESS_MSG_RETURN(tracer, back_end, nullptr, "");
         return slic3rMesh;
     }

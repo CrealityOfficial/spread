@@ -1369,4 +1369,26 @@ bool its_write_stl_binary(const char *file, const char *label, const std::vector
     return true;
 }
 
+void TriangleMesh::require_shared_vertices()
+{
+    ////BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - start";
+    assert(stl_validate(&this->stl));
+
+    //float back_end = tracer ? tracer->end() : 0;
+    //RESET_PROGRESS_PERCENT(tracer, 0.6);
+
+    //if (!this->repaired)
+    //    this->repair(true, tracer);
+
+    ///PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    //RESET_PROGRESS_PERCENT(tracer, 1.0);
+
+    if (this->its.vertices.empty()) {
+        ////BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";
+        stl_generate_shared_vertices(&this->stl, this->its);
+    }
+    assert(stl_validate(&this->stl, this->its));
+    ////BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
+}
+
 } // namespace Slic3r

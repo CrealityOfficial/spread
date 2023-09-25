@@ -78,14 +78,19 @@ namespace spread
 
         void setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer = nullptr);
 
-        trimesh::TriMesh* cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
-        trimesh::TriMesh* cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
+        //POINTER, //Èý½ÇÆ¬ 
+        void triangle_factory(int facet_start, int colorIndex);
+
+        void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
+        void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
+        trimesh::TriMesh* getTrimesh();
     private:
         void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
 
     private:
         std::unique_ptr<Slic3r::TriangleMesh> m_mesh;
+        std::unique_ptr<trimesh::TriMesh> m_triMesh;
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
     };
 

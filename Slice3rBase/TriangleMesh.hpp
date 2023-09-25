@@ -135,6 +135,8 @@ public:
     std::vector<ExPolygons> slice(const std::vector<double>& z) const;
     size_t facets_count() const { assert(m_stats.number_of_facets == this->its.indices.size()); return m_stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
+
+    void require_shared_vertices();
     bool   repaired() const;
     bool   is_splittable() const;
     // Estimate of the memory occupied by this structure, important for keeping an eye on the Undo / Redo stack allocation.
