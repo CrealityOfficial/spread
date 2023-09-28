@@ -29,8 +29,23 @@ namespace spread
         m_triangle_selector.reset(new Slic3r::TriangleSelector(*m_mesh));
     }
 
-    void MeshSpreadWrapper::triangle_factory(int facet_start, int colorIndex)
+    void MeshSpreadWrapper::setColorPlane(const std::vector<trimesh::vec>& color_plane)
     {
+        if (!color_plane.empty())
+        {
+            m_color_plane = color_plane;
+        }
+    }
+
+    int isInMesh(const trimesh::vec& center, const trimesh::vec& normal)
+    {
+        return 0;
+    }
+
+    void MeshSpreadWrapper::triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type)
+    {
+        m_curFacet = facet_start;
+        m_curCursor_type = cursor_type;
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->set_facet(facet_start, new_state);
 
@@ -122,10 +137,26 @@ namespace spread
 
     }
 
-    trimesh::TriMesh* MeshSpreadWrapper::getTrimesh()
+    trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(TrimeshType type)
     {
+        if (m_color_plane.empty())
+        {
+            return nullptr;
+        }
+
         trimesh::TriMesh* triMesh = new trimesh::TriMesh();
         triangle_selector2trimesh(triMesh, m_triangle_selector.get());
+
+        if (type == TrimeshType::ALL)
+        {
+            m_color_plane;
+            triMesh->colors.clear();
+            triMesh->colors.reserve(triMesh->faces.size());
+            for (int i = 0; i < triMesh->faces.size(); i++)
+            {
+                triMesh->colors.push_back(m_color_plane[triMesh->flags.at(i)% m_color_plane.size()]);
+            }
+        }
         return triMesh;
     }
 }
