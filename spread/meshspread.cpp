@@ -27,6 +27,15 @@ namespace spread
         m_mesh.reset(trimesh2Slic3rTriangleMesh(mesh, tracer));
 
         m_triangle_selector.reset(new Slic3r::TriangleSelector(*m_mesh));
+
+        mesh->need_across_edge();
+        std::vector<trimesh::TriMesh::Face>& across_edge = mesh->across_edge;
+        std::vector<Slic3r::Vec3i> neighbors;
+        for (auto& f : across_edge)
+        {
+            neighbors.push_back(Slic3r::Vec3i(f.x, f.y, f.z));
+        }
+        m_triangle_selector->setNeighbors(neighbors);
     }
 
     void MeshSpreadWrapper::setColorPlane(const std::vector<trimesh::vec>& color_plane)
@@ -49,7 +58,8 @@ namespace spread
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->set_facet(facet_start, new_state);
 
-        m_triangle_selector->deserialize(m_triangle_selector->serialize());
+        m_data = m_triangle_selector->serialize();
+        m_triangle_selector->deserialize(m_data);
     }
 
     void MeshSpreadWrapper::triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector)
@@ -71,6 +81,8 @@ namespace spread
             mesh->faces.push_back(trimesh::TriMesh::Face(ver[0], ver[1], ver[2]));
             mesh->flags.push_back(ver[3]);
         }
+
+        m_data = triangle_selector->serialize();
     }
 
     void MeshSpreadWrapper::cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane)
@@ -82,7 +94,7 @@ namespace spread
 
         bool triangle_splitting_enabled = true;
 
-        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType::ENFORCER;//Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
 
         Slic3r::Transform3d _matrix;
         for (int i = 0; i < 4; ++i)
@@ -137,7 +149,7 @@ namespace spread
 
     }
 
-    trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(TrimeshType type)
+    trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(const TrimeshType& type)
     {
         if (m_color_plane.empty())
         {
@@ -158,5 +170,54 @@ namespace spread
             }
         }
         return triMesh;
+    }
+
+    std::string MeshSpreadWrapper::get_triangle_as_string(int triangle_idx) const
+    {
+        std::string out;
+
+        auto triangle_it = std::lower_bound(m_data.first.begin(), m_data.first.end(), triangle_idx, [](const std::pair<int, int>& l, const int r) { return l.first < r; });
+        if (triangle_it != m_data.first.end() && triangle_it->first == triangle_idx) {
+            int offset = triangle_it->second;
+            int end = ++triangle_it == m_data.first.end() ? int(m_data.second.size()) : triangle_it->second;
+            while (offset < end) {
+                int next_code = 0;
+                for (int i = 3; i >= 0; --i) {
+                    next_code = next_code << 1;
+                    next_code |= int(m_data.second[offset + i]);
+                }
+                offset += 4;
+
+                assert(next_code >= 0 && next_code <= 15);
+                char digit = next_code < 10 ? next_code + '0' : (next_code - 10) + 'A';
+                out.insert(out.begin(), digit);
+            }
+        }
+        return out;
+    }
+    void MeshSpreadWrapper::set_triangle_from_string(int triangle_id, const std::string& str)
+    {
+        assert(!str.empty());
+        //assert(m_data.first.empty() || m_data.first.back().first < triangle_id);
+        m_data.first.emplace_back(triangle_id, int(m_data.second.size()));
+
+        for (auto it = str.crbegin(); it != str.crend(); ++it) {
+            const char ch = *it;
+            int dec = 0;
+            if (ch >= '0' && ch <= '9')
+                dec = int(ch - '0');
+            else if (ch >= 'A' && ch <= 'F')
+                dec = 10 + int(ch - 'A');
+            else
+                assert(false);
+
+            // Convert to binary and append into code.
+            for (int i = 0; i < 4; ++i)
+                m_data.second.insert(m_data.second.end(), bool(dec & (1 << i)));
+        }
+
+        m_data.first.shrink_to_fit();
+        m_data.second.shrink_to_fit();
+        m_triangle_selector->deserialize(m_data);
     }
 }

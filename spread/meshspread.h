@@ -6,6 +6,7 @@
 #include "trimesh2/XForm.h"
 #include <vector>
 #include <memory>
+#include <string>
 
 
 namespace trimesh {
@@ -88,23 +89,26 @@ namespace spread
         void setColorPlane(const std::vector<trimesh::vec>& color_plane);
 
         //POINTER, //Èý½ÇÆ¬ 
-        void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type);
+        void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);
 
         //Ï¸·Ö
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
         void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
         //·µ»Ø
-        trimesh::TriMesh* getTrimesh(TrimeshType type = TrimeshType::ALL);
+        trimesh::TriMesh* getTrimesh(const TrimeshType& type = TrimeshType::ALL);
+
+        std::string get_triangle_as_string(int triangle_idx) const;
+        void set_triangle_from_string(int triangle_id, const std::string& str);
     private:
         void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
-
     private:
         int m_curFacet;
         CursorType  m_curCursor_type;
         std::vector<trimesh::vec> m_color_plane;
         std::unique_ptr<Slic3r::TriangleMesh> m_mesh;
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
+        std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;
     };
 
 }

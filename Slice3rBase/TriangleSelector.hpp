@@ -309,6 +309,7 @@ public:
     void getVectors(std::vector<stl_vertex>& vertex);
     void getFacets(std::vector<std::array<int, 5>>& facets);
 
+    void setNeighbors(const std::vector<Vec3i>& neighbors);
 protected:
     // Triangle and info about how it's split.
     class Triangle {
@@ -385,7 +386,7 @@ protected:
     std::vector<Vertex> m_vertices;
     std::vector<Triangle> m_triangles;
     const TriangleMesh &m_mesh;
-    const std::vector<Vec3i> m_neighbors;
+    std::vector<Vec3i> m_neighbors;
     const std::vector<Vec3f> m_face_normals;
 
     // BBS

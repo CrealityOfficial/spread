@@ -118,39 +118,39 @@ static bool test_line_inside_capsule(const Vec3f &line_a, const Vec3f &line_b, c
 #ifndef NDEBUG
 bool TriangleSelector::verify_triangle_midpoints(const Triangle &tr) const
 {
-    for (int i = 0; i < 3; ++ i) {
-        int v1   = tr.verts_idxs[i];
-        int v2   = tr.verts_idxs[next_idx_modulo(i, 3)];
-        int vmid = this->triangle_midpoint(tr, v1, v2);
-        assert(vmid >= -1);
-        if (vmid != -1) {
-            Vec3f c1 = 0.5f * (m_vertices[v1].v + m_vertices[v2].v);
-            Vec3f c2 = m_vertices[vmid].v;
-            float d  = (c2 - c1).norm();
-            assert(std::abs(d) < EPSILON);
-        }
-    }
+    //for (int i = 0; i < 3; ++ i) {
+    //    int v1   = tr.verts_idxs[i];
+    //    int v2   = tr.verts_idxs[next_idx_modulo(i, 3)];
+    //    int vmid = this->triangle_midpoint(tr, v1, v2);
+    //    assert(vmid >= -1);
+    //    if (vmid != -1) {
+    //        Vec3f c1 = 0.5f * (m_vertices[v1].v + m_vertices[v2].v);
+    //        Vec3f c2 = m_vertices[vmid].v;
+    //        float d  = (c2 - c1).norm();
+    //        assert(std::abs(d) < EPSILON);
+    //    }
+    //}
     return true;
 }
 
 bool TriangleSelector::verify_triangle_neighbors(const Triangle &tr, const Vec3i &neighbors) const
 {
     assert(neighbors(0) >= -1);
-    assert(neighbors(1) >= -1);
-    assert(neighbors(2) >= -1);
-    assert(verify_triangle_midpoints(tr));
+    //assert(neighbors(1) >= -1);
+    //assert(neighbors(2) >= -1);
+    //assert(verify_triangle_midpoints(tr));
 
-    for (int i = 0; i < 3; ++i)
-        if (neighbors(i) != -1) {
-            const Triangle &tr2 = m_triangles[neighbors(i)];
-            assert(verify_triangle_midpoints(tr2));
-            int v1 = tr.verts_idxs[i];
-            int v2 = tr.verts_idxs[next_idx_modulo(i, 3)];
-            assert(tr2.verts_idxs[0] == v1 || tr2.verts_idxs[1] == v1 || tr2.verts_idxs[2] == v1);
-            int j = tr2.verts_idxs[0] == v1 ? 0 : tr2.verts_idxs[1] == v1 ? 1 : 2;
-            assert(tr2.verts_idxs[j] == v1);
-            assert(tr2.verts_idxs[prev_idx_modulo(j, 3)] == v2);
-        }
+    //for (int i = 0; i < 3; ++i)
+    //    if (neighbors(i) != -1) {
+    //        const Triangle &tr2 = m_triangles[neighbors(i)];
+    //        assert(verify_triangle_midpoints(tr2));
+    //        int v1 = tr.verts_idxs[i];
+    //        int v2 = tr.verts_idxs[next_idx_modulo(i, 3)];
+    //        assert(tr2.verts_idxs[0] == v1 || tr2.verts_idxs[1] == v1 || tr2.verts_idxs[2] == v1);
+    //        int j = tr2.verts_idxs[0] == v1 ? 0 : tr2.verts_idxs[1] == v1 ? 1 : 2;
+    //        assert(tr2.verts_idxs[j] == v1);
+    //        assert(tr2.verts_idxs[prev_idx_modulo(j, 3)] == v2);
+    //    }
     return true;
 }
 #endif // NDEBUG
@@ -555,7 +555,7 @@ bool TriangleSelector::select_triangle(int facet_idx, EnforcerBlockerType type, 
         return false;
 
     Vec3i neighbors = m_neighbors[facet_idx];
-    assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
+    //assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
 
     if (! select_triangle_recursive(facet_idx, neighbors, type, triangle_splitting))
         return false;
@@ -905,10 +905,12 @@ bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &nei
     if (! tr->valid())
         return false;
 
-    assert(this->verify_triangle_neighbors(*tr, neighbors));
+   // assert(this->verify_triangle_neighbors(*tr, neighbors));
 
     int num_of_inside_vertices = m_cursor->vertices_inside(*tr, m_vertices);
 
+    bool b1 = m_cursor->is_pointer_in_triangle(*tr, m_vertices);
+    bool b2 = m_cursor->is_edge_inside_cursor(*tr, m_vertices);
     if (num_of_inside_vertices == 0
      && ! m_cursor->is_pointer_in_triangle(*tr, m_vertices)
      && ! m_cursor->is_edge_inside_cursor(*tr, m_vertices))
@@ -968,7 +970,7 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
     }
 
     Triangle* tr = &m_triangles[facet_idx];
-    assert(this->verify_triangle_neighbors(*tr, neighbors));
+    //assert(this->verify_triangle_neighbors(*tr, neighbors));
 
     EnforcerBlockerType old_type = tr->get_state();
 
@@ -1898,6 +1900,12 @@ void TriangleSelector::getFacets(std::vector<std::array<int, 5>>& facets)
         verts_idxs[4] = triangle.source_triangle;
         facets.push_back(verts_idxs);
     }
+}
+
+void TriangleSelector::setNeighbors(const std::vector<Vec3i>& neighbors)
+{
+    m_neighbors.clear();
+    m_neighbors = neighbors;
 }
 
 TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)

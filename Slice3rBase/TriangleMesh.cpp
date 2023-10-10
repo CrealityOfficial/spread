@@ -207,6 +207,149 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
     return true;
 }
 
+void TriangleMesh::repair(bool update_shared_vertices, ccglobal::Tracer* tracer)
+{
+    if (this->repaired) {
+        if (update_shared_vertices)
+        {
+            this->require_shared_vertices(tracer);
+        }
+    	return;
+    }
+
+    // admesh fails when repairing empty meshes
+    if (this->stl.stats.number_of_facets == 0)
+    	return;
+
+   // //BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() started";
+    //CXLogDebug("TriangleMesh::repair() started");
+
+    // checking exact
+#ifdef SLIC3R_TRACE_REPAIR
+	////BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_exact";
+#endif /* SLIC3R_TRACE_REPAIR */
+	assert(stl_validate(&this->stl));
+	stl_check_facets_exact(&stl);
+    assert(stl_validate(&this->stl));
+    stl.stats.facets_w_1_bad_edge = (stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge);
+    stl.stats.facets_w_2_bad_edge = (stl.stats.connected_facets_1_edge - stl.stats.connected_facets_2_edge);
+    stl.stats.facets_w_3_bad_edge = (stl.stats.number_of_facets - stl.stats.connected_facets_1_edge);
+
+    float back_end = tracer ? tracer->end() : 0;
+    RESET_PROGRESS_PERCENT(tracer, 0.3);
+    
+    // checking nearby
+    //int last_edges_fixed = 0;
+	float tolerance = (float)stl.stats.shortest_edge;
+	float increment = (float)stl.stats.bounding_diameter / 10000.0f;
+    int iterations = 2;
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
+        for (int i = 0; i < iterations; i++) {
+            float per = (float)(i + 1) / (float)iterations * back_end;
+            RESET_PROGRESS_PERCENT(tracer, per);
+
+            if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
+                //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
+#ifdef SLIC3R_TRACE_REPAIR
+				////BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_nearby";
+#endif /* SLIC3R_TRACE_REPAIR */
+				stl_check_facets_nearby(&stl, tolerance);
+                //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
+                //last_edges_fixed = stl.stats.edges_fixed;
+                tolerance += increment;
+            } else {
+                break;
+            }
+            PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, per, std::string(""));
+
+        }
+    }
+    assert(stl_validate(&this->stl));
+
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, std::string(""));
+    RESET_PROGRESS_PERCENT(tracer, 0.3);
+    
+    // remove_unconnected
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
+#ifdef SLIC3R_TRACE_REPAIR
+        ////BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
+#endif /* SLIC3R_TRACE_REPAIR */
+        stl_remove_unconnected_facets(&stl);
+	    assert(stl_validate(&this->stl));
+    }
+
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    RESET_PROGRESS_PERCENT(tracer, 0.4);
+
+    // fill_holes
+#if 0
+    // Don't fill holes, the current algorithm does more harm than good on complex holes.
+    // Rather let the slicing algorithm close gaps in 2D slices.
+    if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+#ifdef SLIC3R_TRACE_REPAIR
+        ////BOOST_LOG_TRIVIAL(trace) << "\tstl_fill_holes";
+#endif /* SLIC3R_TRACE_REPAIR */
+        stl_fill_holes(&stl);
+        stl_clear_error(&stl);
+    }
+#endif
+
+    // normal_directions
+#ifdef SLIC3R_TRACE_REPAIR
+    ////BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_directions";
+#endif /* SLIC3R_TRACE_REPAIR */
+    stl_fix_normal_directions(&stl);
+    assert(stl_validate(&this->stl));
+
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    RESET_PROGRESS_PERCENT(tracer, 0.3);
+
+    // normal_values
+#ifdef SLIC3R_TRACE_REPAIR
+    ////BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_values";
+#endif /* SLIC3R_TRACE_REPAIR */
+    stl_fix_normal_values(&stl);
+    assert(stl_validate(&this->stl));
+
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    RESET_PROGRESS_PERCENT(tracer, 0.4);
+
+    // always calculate the volume and reverse all normals if volume is negative
+#ifdef SLIC3R_TRACE_REPAIR
+    ////BOOST_LOG_TRIVIAL(trace) << "\tstl_calculate_volume";
+#endif /* SLIC3R_TRACE_REPAIR */
+
+    ///if (!isForceExit)
+    ///{
+    ///    stl_calculate_volume(&stl);
+    ///    assert(stl_validate(&this->stl));
+   /// }
+
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    RESET_PROGRESS_PERCENT(tracer, 0.4);
+
+    // neighbors
+#ifdef SLIC3R_TRACE_REPAIR
+    ////BOOST_LOG_TRIVIAL(trace) << "\tstl_verify_neighbors";
+#endif /* SLIC3R_TRACE_REPAIR */
+    stl_verify_neighbors(&stl);
+    assert(stl_validate(&this->stl));
+
+    this->repaired = true;
+
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    RESET_PROGRESS_PERCENT(tracer, 0.8);
+
+    ////BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
+    //CXLogDebug("TriangleMesh::repair() finished");
+
+    // This call should be quite cheap, a lot of code requires the indexed_triangle_set data structure,
+    // and it is risky to generate such a structure once the meshes are shared. Do it now.
+    this->its.clear();
+    if (update_shared_vertices)
+    	this->require_shared_vertices(tracer);
+}
+
 float TriangleMesh::volume()
 {
     if (m_stats.volume == -1)
@@ -1369,19 +1512,19 @@ bool its_write_stl_binary(const char *file, const char *label, const std::vector
     return true;
 }
 
-void TriangleMesh::require_shared_vertices()
+void TriangleMesh::require_shared_vertices(ccglobal::Tracer* tracer)
 {
     ////BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - start";
     assert(stl_validate(&this->stl));
 
-    //float back_end = tracer ? tracer->end() : 0;
-    //RESET_PROGRESS_PERCENT(tracer, 0.6);
+    float back_end = tracer ? tracer->end() : 0;
+    RESET_PROGRESS_PERCENT(tracer, 0.6);
 
-    //if (!this->repaired)
-    //    this->repair(true, tracer);
+    if (!this->repaired)
+        this->repair(true, tracer);
 
-    ///PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
-    //RESET_PROGRESS_PERCENT(tracer, 1.0);
+    PROGRESS_BREAK_FINISH_CUR_NEXT(tracer, back_end, "");
+    RESET_PROGRESS_PERCENT(tracer, 1.0);
 
     if (this->its.vertices.empty()) {
         ////BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";

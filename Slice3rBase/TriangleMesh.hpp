@@ -12,6 +12,7 @@
 #include "Polygon.hpp"
 #include "ExPolygon.hpp"
 #include "Format/STL.hpp"
+#include "ccglobal/tracer.h"
 namespace Slic3r {
 
 class TriangleMesh;
@@ -88,13 +89,14 @@ struct TriangleMeshStats {
 class TriangleMesh
 {
 public:
-    TriangleMesh() = default;
+    TriangleMesh() : repaired(false) {}
     TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces);
     TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i> &&faces);
     explicit TriangleMesh(const indexed_triangle_set &M);
     explicit TriangleMesh(indexed_triangle_set &&M, const RepairedMeshErrors& repaired_errors = RepairedMeshErrors());
     void clear() { this->its.clear(); this->m_stats.clear(); }
     bool from_stl(stl_file& stl, bool repair = true);
+    void repair(bool update_shared_vertices = true, ccglobal::Tracer* tracer = nullptr);
     float volume();
     void scale(float factor);
     void scale(const Vec3f &versor);
@@ -136,8 +138,8 @@ public:
     size_t facets_count() const { assert(m_stats.number_of_facets == this->its.indices.size()); return m_stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
 
-    void require_shared_vertices();
-    bool   repaired() const;
+    void require_shared_vertices(ccglobal::Tracer* tracer = nullptr);
+    //bool   repaired() const;
     bool   is_splittable() const;
     // Estimate of the memory occupied by this structure, important for keeping an eye on the Undo / Redo stack allocation.
     size_t memsize() const;
@@ -156,6 +158,7 @@ public:
 
     stl_file stl;
     indexed_triangle_set its;
+    bool repaired = false;
 
 private:
     TriangleMeshStats m_stats;

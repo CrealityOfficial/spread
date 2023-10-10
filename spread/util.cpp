@@ -10,6 +10,7 @@ namespace spread
 		if (!mesh)
 			return nullptr;
 
+
         float back_end = tracer ? tracer->end() : 0;
         RESET_PROGRESS_PERCENT(tracer, 0.4);
 
@@ -72,6 +73,7 @@ namespace spread
         PROGRESS_RETURN_FINISH_CUR_NEXT(tracer, back_end, nullptr, "");
         RESET_PROGRESS_PERCENT(tracer, 0.3);
 
+#pragma omp parallel for
         for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i) {
             stl_facet facet;
             facet.vertex[0] = M.vertices[size_t(M.indices[i](0))];
