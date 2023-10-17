@@ -27,15 +27,6 @@ namespace spread
         m_mesh.reset(trimesh2Slic3rTriangleMesh(mesh, tracer));
 
         m_triangle_selector.reset(new Slic3r::TriangleSelector(*m_mesh));
-
-        mesh->need_across_edge();
-        std::vector<trimesh::TriMesh::Face>& across_edge = mesh->across_edge;
-        std::vector<Slic3r::Vec3i> neighbors;
-        for (auto& f : across_edge)
-        {
-            neighbors.push_back(Slic3r::Vec3i(f.x, f.y, f.z));
-        }
-        m_triangle_selector->setNeighbors(neighbors);
     }
 
     void MeshSpreadWrapper::setColorPlane(const std::vector<trimesh::vec>& color_plane)
