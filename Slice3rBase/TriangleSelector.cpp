@@ -1892,13 +1892,16 @@ void TriangleSelector::getFacets(std::vector<std::array<int, 5>>& facets)
     facets.reserve(m_triangles.size());
     for (auto& triangle : m_triangles)
     {
-        std::array<int, 5> verts_idxs;
-        verts_idxs[0] = triangle.verts_idxs[0];
-        verts_idxs[1] = triangle.verts_idxs[1];
-        verts_idxs[2] = triangle.verts_idxs[2];
-        verts_idxs[3] = (int)triangle.state;
-        verts_idxs[4] = triangle.source_triangle;
-        facets.push_back(verts_idxs);
+        if (!triangle.is_split())
+        {
+            std::array<int, 5> verts_idxs;
+            verts_idxs[0] = triangle.verts_idxs[0];
+            verts_idxs[1] = triangle.verts_idxs[1];
+            verts_idxs[2] = triangle.verts_idxs[2];
+            verts_idxs[3] = (int)triangle.state;
+            verts_idxs[4] = triangle.source_triangle;
+            facets.push_back(verts_idxs);
+        }
     }
 }
 

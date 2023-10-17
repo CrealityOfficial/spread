@@ -89,12 +89,14 @@ namespace spread
     {
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(cursor_type);
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
-        _clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
-        _clipping_plane.offset = clipping_plane.offset;
+        //_clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
+        //_clipping_plane.offset = clipping_plane.offset;
 
         bool triangle_splitting_enabled = true;
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType::ENFORCER;//Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+
+        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
 
         Slic3r::Transform3d _matrix;
         for (int i = 0; i < 4; ++i)
@@ -109,7 +111,7 @@ namespace spread
             Slic3r::Vec3f(camera_pos), cursor_radius,
             _cursor_type, _matrix, _clipping_plane);
 
-        m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, _matrix,
+        m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, trafo_no_translate,
             triangle_splitting_enabled);
 
        m_triangle_selector->deserialize(m_triangle_selector->serialize());  
