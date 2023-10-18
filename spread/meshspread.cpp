@@ -142,6 +142,43 @@ namespace spread
 
     }
 
+    void MeshSpreadWrapper::bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type)
+    {
+        Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(cursor_type);
+        float seed_fill_angle = 30.f;
+        bool propagate = true;
+        bool force_reselection = true;
+
+        Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
+        //_clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
+        _clipping_plane.normal = Slic3r::Vec3f(0.f,0.f,1.f);
+        //_clipping_plane.offset = 0.0f;
+
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+
+
+        m_triangle_selector->bucket_fill_select_triangles(
+            Slic3r::Vec3f(center)
+            , clipping_plane.facet_idx
+            , _clipping_plane
+            , seed_fill_angle
+            , propagate
+            , false);
+
+
+        m_triangle_selector->seed_fill_apply_on_triangles(new_state);
+
+        //m_triangle_selector->bucket_fill_select_triangles(
+        //    Slic3r::Vec3f(center)
+        //    , clipping_plane.facet_idx
+        //    , _clipping_plane
+        //    , seed_fill_angle
+        //    , propagate
+        //    , force_reselection);
+
+        m_triangle_selector->deserialize(m_triangle_selector->serialize());
+    }
+
     trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(const TrimeshType& type)
     {
         if (m_color_plane.empty())

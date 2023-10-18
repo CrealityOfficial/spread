@@ -1,13 +1,7 @@
 #ifndef MESH_SPREAD_1595984973500_H
 #define MESH_SPREAD_1595984973500_H
 
-#include "interface.h"
-#include "trimesh2/TriMesh.h"
-#include "trimesh2/XForm.h"
-#include <vector>
-#include <memory>
-#include <string>
-
+#include "header.h"
 
 namespace trimesh {
     class TriMesh;
@@ -28,15 +22,6 @@ namespace ccglobal
 
 namespace spread
 {
-    enum SPREAD_API CursorType {
-        CIRCLE,//2dÔ²
-        SPHERE,//3dÇò
-        POINTER, //Èý½ÇÆ¬ 
-        // BBS
-        HEIGHT_RANGE,
-        GAP_FILL,
-    };
-
     struct SPREAD_API ClippingPlane
     {
         size_t facet_idx;//ÃæË÷Òý
@@ -76,6 +61,7 @@ namespace spread
     };
 
 
+
     class SPREAD_API MeshSpreadWrapper
     {
     public:
@@ -95,6 +81,9 @@ namespace spread
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
         void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
+        //Ìî³ä
+        void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);
+
         //·µ»Ø
         trimesh::TriMesh* getTrimesh(const TrimeshType& type = TrimeshType::ALL);
 
