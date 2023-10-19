@@ -250,4 +250,32 @@ namespace spread
         m_data.second.shrink_to_fit();
         m_triangle_selector->deserialize(m_data);
     }
+
+    std::vector<std::string> MeshSpreadWrapper::get_data_as_string() const
+    {
+        std::vector<std::string> data;
+        int facets_count = m_mesh->its.indices.size();
+        data.resize(facets_count);
+        for (int i = 0; i < facets_count; ++i)
+        {
+            std::string face_data = get_triangle_as_string(i);
+            if (face_data.empty())
+                continue;
+
+            data[i] = face_data;
+        }
+        return data;
+    }
+
+    void MeshSpreadWrapper::set_triangle_from_data(std::vector<std::string> strList)
+    {
+        int facets_count = m_mesh->its.indices.size();
+        assert(strList.size() == facets_count);
+        for (int i = 0; i < facets_count; ++i)
+        {
+            const std::string& str = strList[i];
+            if (!str.empty())
+                set_triangle_from_string(i, str);
+        }
+    }
 }

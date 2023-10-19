@@ -24,8 +24,8 @@ namespace spread
 {
     struct SPREAD_API ClippingPlane
     {
-        size_t facet_idx;//ÃæË÷Òı
-        trimesh::vec3 normal;//·¨Ïß
+        size_t facet_idx;//é¢ç´¢å¼•
+        trimesh::vec3 normal;//æ³•çº¿
         int extruderIndex;
 
         float offset;
@@ -68,27 +68,30 @@ namespace spread
         MeshSpreadWrapper();
         ~MeshSpreadWrapper();
 
-        //³õÊ¼»¯Êı¾İ
+        //åˆå§‹åŒ–æ•°æ®
         void setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer = nullptr);
 
-        //ÉèÖÃÑÕÉ«
+        //è®¾ç½®é¢œè‰²
         void setColorPlane(const std::vector<trimesh::vec>& color_plane);
 
-        //POINTER, //Èı½ÇÆ¬ 
+        //POINTER, //ä¸‰è§’ç‰‡ 
         void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);
 
-        //Ï¸·Ö
+        //ç»†åˆ†
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
         void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
-        //Ìî³ä
+        //å¡«å……
         void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);
 
-        //·µ»Ø
+        //è¿”å›
         trimesh::TriMesh* getTrimesh(const TrimeshType& type = TrimeshType::ALL);
 
         std::string get_triangle_as_string(int triangle_idx) const;
         void set_triangle_from_string(int triangle_id, const std::string& str);
+        std::vector<std::string> get_data_as_string() const;
+        void set_triangle_from_data(std::vector<std::string> strList);
+
     private:
         void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
     private:

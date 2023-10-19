@@ -22,14 +22,13 @@ namespace spread
     };
 
     enum SPREAD_API CursorType {
-        POINTER, //����Ƭ 
-        CIRCLE,//2dԲ
+        POINTER, //三角片 
+        CIRCLE,//2d圆
         GAP_FILL,
-        SPHERE,//3d��
+        SPHERE,//3d球
         // BBS
         HEIGHT_RANGE,
     };
-
 }
 
 
