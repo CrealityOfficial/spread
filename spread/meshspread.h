@@ -91,7 +91,7 @@ namespace spread
         void set_triangle_from_string(int triangle_id, const std::string& str);
         std::vector<std::string> get_data_as_string() const;
         void set_triangle_from_data(std::vector<std::string> strList);
-
+        void updateTriangle();
     private:
         void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
     private:

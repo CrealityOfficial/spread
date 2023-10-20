@@ -248,7 +248,10 @@ namespace spread
             for (int i = 0; i < 4; ++i)
                 m_data.second.insert(m_data.second.end(), bool(dec & (1 << i)));
         }
+    }
 
+    void MeshSpreadWrapper::updateTriangle()
+    {
         m_data.first.shrink_to_fit();
         m_data.second.shrink_to_fit();
         m_triangle_selector->deserialize(m_data);
@@ -280,5 +283,7 @@ namespace spread
             if (!str.empty())
                 set_triangle_from_string(i, str);
         }
+
+        updateTriangle();
     }
 }
