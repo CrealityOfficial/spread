@@ -49,8 +49,7 @@ namespace spread
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->set_facet(facet_start, new_state);
 
-        m_data = m_triangle_selector->serialize();
-        m_triangle_selector->deserialize(m_data);
+        updateData();
     }
 
     void MeshSpreadWrapper::triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector)
@@ -73,7 +72,7 @@ namespace spread
             mesh->flags.push_back(ver[3]);
         }
 
-        m_data = triangle_selector->serialize();
+        //m_data = triangle_selector->serialize();
     }
 
     void MeshSpreadWrapper::cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane)
@@ -85,7 +84,7 @@ namespace spread
 
         bool triangle_splitting_enabled = true;
 
-        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType::ENFORCER;//Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
 
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
 
@@ -105,8 +104,7 @@ namespace spread
         m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, trafo_no_translate,
             triangle_splitting_enabled);
 
-        m_data = m_triangle_selector->serialize();
-        m_triangle_selector->deserialize(m_data);
+        updateData();
     }
 
     void MeshSpreadWrapper::cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane)
@@ -138,10 +136,14 @@ namespace spread
 
         m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, _matrix,
             triangle_splitting_enabled);
+    }
 
+    void MeshSpreadWrapper::updateData()
+    {
+        m_data.first.shrink_to_fit();
+        m_data.second.shrink_to_fit();
         m_data = m_triangle_selector->serialize();
-        m_triangle_selector->deserialize(m_data);
-
+        //m_triangle_selector->deserialize(m_data);
     }
 
     void MeshSpreadWrapper::bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type)
@@ -178,8 +180,7 @@ namespace spread
         //    , propagate
         //    , force_reselection);
 
-        m_data = m_triangle_selector->serialize();
-        m_triangle_selector->deserialize(m_data);
+        updateData();
     }
 
     void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<trimesh::vec>& contour, const CursorType& cursor_type)
@@ -256,7 +257,10 @@ namespace spread
                 int next_code = 0;
                 for (int i = 3; i >= 0; --i) {
                     next_code = next_code << 1;
-                    next_code |= int(m_data.second[offset + i]);
+                    if (offset + i < m_data.second.size())
+                        next_code |= int(m_data.second[offset + i]);
+                    else 
+                        next_code |= int(m_data.second[0]);
                 }
                 offset += 4;
 
@@ -273,6 +277,7 @@ namespace spread
         //assert(m_data.first.empty() || m_data.first.back().first < triangle_id);
         m_data.first.emplace_back(triangle_id, int(m_data.second.size()));
 
+        m_data.second.reserve(m_data.second.size() + str.size()*4 +1);
         for (auto it = str.crbegin(); it != str.crend(); ++it) {
             const char ch = *it;
             int dec = 0;
@@ -285,7 +290,7 @@ namespace spread
 
             // Convert to binary and append into code.
             for (int i = 0; i < 4; ++i)
-                m_data.second.insert(m_data.second.end(), bool(dec & (1 << i)));
+                m_data.second.insert(m_data.second.end(), bool(dec & (1 << i)));         
         }
     }
 
