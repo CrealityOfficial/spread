@@ -477,7 +477,7 @@ void TriangleSelector::append_touching_edges(int itriangle, int vertexi, int ver
 void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, const ClippingPlane &clp, float seed_fill_angle, bool propagate, bool force_reselection)
 {
     int start_facet_idx = select_unsplit_triangle(hit, facet_start);
-    assert(start_facet_idx != -1);
+    //assert(start_facet_idx != -1);
     // Recompute bucket fill only if the cursor is pointing on facet unselected by bucket fill or a clipping plane is active.
     if (start_facet_idx == -1 || (m_triangles[start_facet_idx].is_selected_by_seed_fill() && !force_reselection && !clp.is_active()))
         return;

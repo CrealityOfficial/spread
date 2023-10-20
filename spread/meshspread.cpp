@@ -75,7 +75,9 @@ namespace spread
         //m_data = triangle_selector->serialize();
     }
 
-    void MeshSpreadWrapper::cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane)
+    void MeshSpreadWrapper::cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, 
+        const float& cursor_radius, const CursorType& cursor_type, 
+        const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane)
     {
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(cursor_type);
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
@@ -183,7 +185,7 @@ namespace spread
         updateData();
     }
 
-    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<trimesh::vec>& contour, const CursorType& cursor_type)
+    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour, const CursorType& cursor_type)
     {
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(cursor_type);
         float seed_fill_angle = 30.f;
@@ -208,16 +210,24 @@ namespace spread
                 , false);
 
 
+            trimesh::vec offset = rayDir * -1;
             std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
-            contour.reserve(contour_edges.size() * 6);
+            contour.reserve(contour_edges.size());
             for (const Slic3r::Vec2i& edge : contour_edges) {
-                contour.emplace_back(m_triangle_selector->getVectors(edge(0)).x());
-                contour.emplace_back(m_triangle_selector->getVectors(edge(0)).y());
-                contour.emplace_back(m_triangle_selector->getVectors(edge(0)).z());
+                std::vector<trimesh::vec> line;
+                int index= edge(0);
+                auto vector = m_triangle_selector->getVectors(index);
+                line.emplace_back(trimesh::vec3(vector.x() + offset.x, 
+                                                vector.y() + offset.y, 
+                                                vector.z() + offset.z));
 
-                contour.emplace_back(m_triangle_selector->getVectors(edge(1)).x());
-                contour.emplace_back(m_triangle_selector->getVectors(edge(1)).y());
-                contour.emplace_back(m_triangle_selector->getVectors(edge(1)).z());
+                index = edge(1);
+                vector = m_triangle_selector->getVectors(index);
+                line.emplace_back(trimesh::vec3(vector.x() + offset.x, 
+                                                vector.y() + offset.y, 
+                                                vector.z() + offset.z));
+
+                contour.emplace_back(line);
             }
         }
     }

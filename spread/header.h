@@ -17,6 +17,7 @@ namespace spread
         trimesh::vec center;
         trimesh::vec cameraPos;
         trimesh::vec normal;
+        trimesh::vec rayDir;
         trimesh::fxform pose;
         float radius;
     };
