@@ -105,7 +105,8 @@ namespace spread
         m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, trafo_no_translate,
             triangle_splitting_enabled);
 
-       m_triangle_selector->deserialize(m_triangle_selector->serialize());  
+        m_data = m_triangle_selector->serialize();
+        m_triangle_selector->deserialize(m_data);
     }
 
     void MeshSpreadWrapper::cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane)
@@ -138,7 +139,8 @@ namespace spread
         m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, _matrix,
             triangle_splitting_enabled);
 
-        m_triangle_selector->deserialize(m_triangle_selector->serialize());
+        m_data = m_triangle_selector->serialize();
+        m_triangle_selector->deserialize(m_data);
 
     }
 
@@ -176,7 +178,8 @@ namespace spread
         //    , propagate
         //    , force_reselection);
 
-        m_triangle_selector->deserialize(m_triangle_selector->serialize());
+        m_data = m_triangle_selector->serialize();
+        m_triangle_selector->deserialize(m_data);
     }
 
     trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(const TrimeshType& type)
