@@ -307,7 +307,9 @@ public:
     void seed_fill_apply_on_triangles(EnforcerBlockerType new_state);
 
     void getVectors(std::vector<stl_vertex>& vertex);
+    stl_vertex& getVectors(int index);
     void getFacets(std::vector<std::array<int, 5>>& facets);
+    int getFacetsNum();
 
     void setNeighbors(const std::vector<Vec3i>& neighbors);
 protected:

@@ -83,6 +83,10 @@ namespace spread
    
         //填充
         void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);
+        
+        //预填充
+        void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane,std::vector<trimesh::vec>&contour, const CursorType& cursor_type = CursorType::GAP_FILL);
+
 
         //返回
         trimesh::TriMesh* getTrimesh(const TrimeshType& type = TrimeshType::ALL);

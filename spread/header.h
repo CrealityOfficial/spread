@@ -25,6 +25,7 @@ namespace spread
         POINTER, //三角片 
         CIRCLE,//2d圆
         GAP_FILL,
+        GAP_FILL_PREVIEW,
         SPHERE,//3d球
         // BBS
         HEIGHT_RANGE,

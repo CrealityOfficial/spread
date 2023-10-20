@@ -1887,6 +1887,16 @@ void TriangleSelector::getVectors(std::vector<stl_vertex>& vertex)
         vertex.push_back(ver.v);
     }
 }
+
+stl_vertex& TriangleSelector::getVectors(int index)
+{
+    if (index < m_vertices.size() && index >=0)
+    {
+        return m_vertices[index].v;
+    }
+    return m_vertices[0].v;
+}
+
 void TriangleSelector::getFacets(std::vector<std::array<int, 5>>& facets)
 {
     facets.reserve(m_triangles.size());
@@ -1903,6 +1913,11 @@ void TriangleSelector::getFacets(std::vector<std::array<int, 5>>& facets)
             facets.push_back(verts_idxs);
         }
     }
+}
+
+int TriangleSelector::getFacetsNum()
+{
+    return m_triangles.size();
 }
 
 void TriangleSelector::setNeighbors(const std::vector<Vec3i>& neighbors)
