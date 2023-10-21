@@ -74,7 +74,7 @@ namespace spread
         RESET_PROGRESS_PERCENT(tracer, 0.3);
 
 #pragma omp parallel for
-        for (uint32_t i = 0; i < stl.stats.number_of_facets; ++i) {
+        for (int i = 0; i < (int)stl.stats.number_of_facets; ++i) {
             stl_facet facet;
             facet.vertex[0] = M.vertices[size_t(M.indices[i](0))];
             facet.vertex[1] = M.vertices[size_t(M.indices[i](1))];
@@ -88,8 +88,6 @@ namespace spread
             facet.normal = normal;
 
             stl.facet_start[i] = facet;
-
-            SPLIT_PROGRESS_MSG_RETURN(i, 100, stl.stats.number_of_facets, tracer, slic3rMesh, "");
         }
 
         PROGRESS_RETURN_FINISH_CUR_NEXT(tracer, back_end, nullptr, "");

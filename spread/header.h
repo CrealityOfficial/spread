@@ -1,12 +1,14 @@
 #ifndef SPREADHEADER_1632383314974_H
 #define SPREADHEADER_1632383314974_H
 
-#include "interface.h"
+#include "spread/interface.h"
 #include "trimesh2/TriMesh.h"
 #include "trimesh2/XForm.h"
 #include <vector>
 #include <memory>
 #include <string>
+
+#include "ccglobal/tracer.h"
 
 namespace spread
 {

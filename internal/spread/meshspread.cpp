@@ -1,4 +1,4 @@
-#include "meshspread.h"
+#include "spread/meshspread.h"
 #include "util.h"
 #include "Slice3rBase/TriangleMesh.hpp"
 #include "Slice3rBase/TriangleSelector.hpp"

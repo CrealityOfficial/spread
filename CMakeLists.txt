@@ -10,9 +10,9 @@ set(ILIBS trimesh2)
 set(LIBS eigen) 
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/spread/ SRCS1)
-#__files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)
+__files_group(${CMAKE_CURRENT_SOURCE_DIR}/internal/ SRCS2)
 
-set(SRCS ${SRCS1})		 
+set(SRCS ${SRCS1} ${SRCS2})		 
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR})
 set(DEFS BOOST_ALL_NO_LIB)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})

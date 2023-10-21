@@ -1,11 +1,7 @@
 #ifndef MESH_SPREAD_1595984973500_H
 #define MESH_SPREAD_1595984973500_H
 
-#include "header.h"
-
-namespace trimesh {
-    class TriMesh;
-}
+#include "spread/header.h"
 
 namespace Slic3r {
     class TriangleMesh;
@@ -13,11 +9,6 @@ namespace Slic3r {
     namespace sla {
         class IndexedMesh;
     }
-}
-
-namespace ccglobal
-{
-    class Tracer;
 }
 
 namespace spread
