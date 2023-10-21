@@ -1588,6 +1588,32 @@ std::vector<Vec2i> TriangleSelector::get_seed_fill_contour() const {
     return edges_out;
 }
 
+//anoob
+void TriangleSelector::get_chunk_facets(int chunk, const std::vector<int>& faceChunkID,
+    indexed_triangle_set& out, std::vector<int>& flags, std::vector<int>& indexMap) const
+{
+    flags.clear();
+    indexMap.clear();
+
+    std::vector<int> vertex_map(m_vertices.size(), -1);
+    for (const Triangle& tr : m_triangles) {
+        if (tr.valid() && !tr.is_split() && (faceChunkID.at(tr.source_triangle) == chunk)) {
+            stl_triangle_vertex_indices indices;
+            for (int i = 0; i < 3; ++i) {
+                int j = tr.verts_idxs[i];
+                if (vertex_map[j] == -1) {
+                    vertex_map[j] = int(out.vertices.size());
+                    out.vertices.emplace_back(m_vertices[j].v);
+                }
+                indices[i] = vertex_map[j];
+            }
+            out.indices.emplace_back(indices);
+            flags.emplace_back((int)tr.state);
+            indexMap.emplace_back(tr.source_triangle);
+        }
+    }
+}
+
 void TriangleSelector::get_seed_fill_contour_recursive(const int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec2i> &edges_out) const {
     assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
     assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
@@ -1924,6 +1950,11 @@ void TriangleSelector::setNeighbors(const std::vector<Vec3i>& neighbors)
 {
     m_neighbors.clear();
     m_neighbors = neighbors;
+}
+
+const std::vector<Vec3i>& TriangleSelector::originNeighbors() const
+{
+    return m_neighbors;
 }
 
 TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)

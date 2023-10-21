@@ -62,6 +62,10 @@ namespace spread
         //初始化数据
         void setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer = nullptr);
 
+        void testChunk();
+        int chunkCount();
+        void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& toSources);
+
         //设置颜色
         void setColorPlane(const std::vector<trimesh::vec>& color_plane);
 
@@ -98,6 +102,9 @@ namespace spread
         std::unique_ptr<Slic3r::TriangleMesh> m_mesh;
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
         std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;
+
+        std::vector<int> m_faceChunkIDs;
+        std::vector<std::vector<int>> m_chunkFaces;
     };
 
 }

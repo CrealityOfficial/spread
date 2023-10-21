@@ -24,9 +24,88 @@ namespace spread
         if (m_triangle_selector != nullptr)
              m_triangle_selector->reset();
 
-        m_mesh.reset(trimesh2Slic3rTriangleMesh(mesh, tracer));
-
+        m_mesh.reset(simpleConvert(mesh, tracer));
         m_triangle_selector.reset(new Slic3r::TriangleSelector(*m_mesh));
+
+        //split chunks
+        const std::vector<Slic3r::Vec3i>& neigbs = m_triangle_selector->originNeighbors();
+        int faceCount = mesh->faces.size();
+        assert(faceCount == (int)neigbs.size());
+
+        int chunkCount = 10;
+        if (faceCount < chunkCount)
+            chunkCount = faceCount;
+
+        int currentChunk = 0;
+        m_chunkFaces.resize(chunkCount);
+        m_faceChunkIDs.resize(faceCount, -1);
+
+        int chunkSize = faceCount / chunkCount;
+        for (int i = 0; i < faceCount; ++i)
+        {
+            if (m_faceChunkIDs.at(i) >= 0)
+                continue;
+
+            std::set<int> seeds;
+            seeds.insert(i);
+            std::set<int> next_seeds;
+
+            while (!seeds.empty())
+            {
+                std::vector<int>& chunks = m_chunkFaces.at(currentChunk);
+
+                for (int s : seeds)
+                {
+                    const Slic3r::Vec3i& nei = neigbs.at(s);
+                    chunks.push_back(s);
+                    m_faceChunkIDs.at(s) = currentChunk;
+
+                    for (int j = 0; j < 3; ++j)
+                    {
+                        if (nei[j] >= 0 && m_faceChunkIDs.at(nei[j]) < 0)
+                            next_seeds.insert(nei[j]);
+                    }
+                }
+
+                if ((chunks.size() > chunkSize) && (currentChunk < chunkCount - 1))
+                {
+                    currentChunk++;
+                    next_seeds.clear();
+                }
+
+
+                next_seeds.swap(seeds);
+                next_seeds.clear();
+            }
+        }
+    }
+
+    void MeshSpreadWrapper::testChunk()
+    {
+        int faceCount = m_mesh->facets_count();
+        //assert(faceCount == (int)neigbs.size());
+
+        int chunkCount = (int)m_chunkFaces.size();
+        for (int i = 0; i < chunkCount; ++i)
+        {
+            const std::vector<int>& faces = m_chunkFaces.at(i);
+            for(int j : faces)
+                m_triangle_selector->set_facet(j, (Slic3r::EnforcerBlockerType)(i % 8));
+        }
+    }
+
+    int MeshSpreadWrapper::chunkCount()
+    {
+        return (int)m_chunkFaces.size();
+    }
+
+    void MeshSpreadWrapper::chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& toSources)
+    {
+        assert(index >= 0 && index < m_chunkFaces.size());
+        indexed_triangle_set indexed;
+        m_triangle_selector->get_chunk_facets(index, m_faceChunkIDs, indexed, flags, toSources);
+
+        indexed2TriangleSoup(indexed, positions);
     }
 
     void MeshSpreadWrapper::setColorPlane(const std::vector<trimesh::vec>& color_plane)

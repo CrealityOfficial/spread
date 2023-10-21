@@ -280,6 +280,10 @@ public:
     // Get edges around the selected area by seed fill.
     std::vector<Vec2i> get_seed_fill_contour() const;
 
+    // anoob
+    void get_chunk_facets(int chunk, const std::vector<int>& faceChunkID,
+        indexed_triangle_set& out, std::vector<int>& flags, std::vector<int>& indexMap) const;
+
     // BBS
     void get_facets(std::vector<indexed_triangle_set>& facets_per_type) const;
 
@@ -312,6 +316,7 @@ public:
     int getFacetsNum();
 
     void setNeighbors(const std::vector<Vec3i>& neighbors);
+    const std::vector<Vec3i>& originNeighbors() const;
 protected:
     // Triangle and info about how it's split.
     class Triangle {

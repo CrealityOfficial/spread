@@ -26,6 +26,9 @@ namespace spread
 
 
 	trimesh::TriMesh* slic3rMesh2TriMesh(const Slic3r::TriangleMesh& mesh);
+
+	Slic3r::TriangleMesh* simpleConvert(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer = nullptr);
+	void indexed2TriangleSoup(const indexed_triangle_set& indexed, std::vector<trimesh::vec3>& triangles);
 }
 
 #endif // SLIC3RWRAPPER_UTIL_1632383314974_H

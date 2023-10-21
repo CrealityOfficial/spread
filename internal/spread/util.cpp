@@ -101,6 +101,38 @@ namespace spread
         return slic3rMesh;
     }
 
+    Slic3r::TriangleMesh* simpleConvert(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer)
+    {
+        if (!mesh)
+            return nullptr;
+
+        indexed_triangle_set indexed_set;
+        trimesh2IndexTriangleSet(mesh, indexed_set, tracer);
+
+        return new Slic3r::TriangleMesh(std::move(indexed_set));
+    }
+
+    trimesh::vec3 toVector(const stl_vertex& vertex)
+    {
+        return trimesh::vec3(vertex.x(), vertex.y(), vertex.z());
+    }
+
+    void indexed2TriangleSoup(const indexed_triangle_set& indexed, std::vector<trimesh::vec3>& triangles)
+    {
+        triangles.clear();
+        int count = (int)indexed.indices.size();
+        if (count > 0)
+        {
+            triangles.resize(3 * count);
+            for (int i = 0; i < count; ++i)
+            {
+                const stl_triangle_vertex_indices& indices = indexed.indices.at(i);
+                for (int j = 0; j < 3; ++j)
+                    triangles.at(3 * i + j) = toVector(indexed.vertices.at(indices(j)));
+            }
+        }
+    }
+
     trimesh::TriMesh* slic3rMesh2TriMesh(const Slic3r::TriangleMesh& mesh)
     {
         trimesh::TriMesh* out = new trimesh::TriMesh();
