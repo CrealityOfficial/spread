@@ -99,11 +99,11 @@ namespace spread
         return (int)m_chunkFaces.size();
     }
 
-    void MeshSpreadWrapper::chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& toSources)
+    void MeshSpreadWrapper::chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices)
     {
         assert(index >= 0 && index < m_chunkFaces.size());
         indexed_triangle_set indexed;
-        m_triangle_selector->get_chunk_facets(index, m_faceChunkIDs, indexed, flags, toSources);
+        m_triangle_selector->get_chunk_facets(index, m_faceChunkIDs, indexed, flags, splitIndices);
 
         indexed2TriangleSoup(indexed, positions);
     }
@@ -129,6 +129,12 @@ namespace spread
         m_triangle_selector->set_facet(facet_start, new_state);
 
         updateData();
+    }
+
+    void MeshSpreadWrapper::triangle_factory1(int facet, int colorIndex)
+    {
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
+        m_triangle_selector->set_facet(facet, new_state);
     }
 
     void MeshSpreadWrapper::triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector)

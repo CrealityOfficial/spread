@@ -1590,12 +1590,13 @@ std::vector<Vec2i> TriangleSelector::get_seed_fill_contour() const {
 
 //anoob
 void TriangleSelector::get_chunk_facets(int chunk, const std::vector<int>& faceChunkID,
-    indexed_triangle_set& out, std::vector<int>& flags, std::vector<int>& indexMap) const
+    indexed_triangle_set& out, std::vector<int>& flags, std::vector<int>& splitIndices) const
 {
     flags.clear();
-    indexMap.clear();
+    splitIndices.clear();
 
     std::vector<int> vertex_map(m_vertices.size(), -1);
+    int index = 0;
     for (const Triangle& tr : m_triangles) {
         if (tr.valid() && !tr.is_split() && (faceChunkID.at(tr.source_triangle) == chunk)) {
             stl_triangle_vertex_indices indices;
@@ -1609,8 +1610,9 @@ void TriangleSelector::get_chunk_facets(int chunk, const std::vector<int>& faceC
             }
             out.indices.emplace_back(indices);
             flags.emplace_back((int)tr.state);
-            indexMap.emplace_back(tr.source_triangle);
+            splitIndices.emplace_back(index);
         }
+        ++index;
     }
 }
 

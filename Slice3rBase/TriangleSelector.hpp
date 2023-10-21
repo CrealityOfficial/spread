@@ -282,7 +282,7 @@ public:
 
     // anoob
     void get_chunk_facets(int chunk, const std::vector<int>& faceChunkID,
-        indexed_triangle_set& out, std::vector<int>& flags, std::vector<int>& indexMap) const;
+        indexed_triangle_set& out, std::vector<int>& flags, std::vector<int>& splitIndices) const;
 
     // BBS
     void get_facets(std::vector<indexed_triangle_set>& facets_per_type) const;

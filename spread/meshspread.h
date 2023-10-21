@@ -64,13 +64,14 @@ namespace spread
 
         void testChunk();
         int chunkCount();
-        void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& toSources);
+        void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
 
         //设置颜色
         void setColorPlane(const std::vector<trimesh::vec>& color_plane);
 
         //POINTER, //三角片 
         void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);
+        void triangle_factory1(int facet, int colorIndex);
 
         //细分
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
