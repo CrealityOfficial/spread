@@ -1,5 +1,6 @@
 #include "spread/conv.h"
 #include "util.h"
+#include "Slice3rBase/TriangleMesh.hpp"
 
 namespace spread
 {
