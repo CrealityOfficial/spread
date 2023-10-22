@@ -131,7 +131,7 @@ namespace spread
         updateData();
     }
 
-    void MeshSpreadWrapper::triangle_factory1(int facet, int colorIndex)
+    void MeshSpreadWrapper::triangle(int facet, int colorIndex)
     {
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->set_facet(facet, new_state);
@@ -223,6 +223,30 @@ namespace spread
 
         m_triangle_selector->select_patch(int(clipping_plane.facet_idx), std::move(cursor), new_state, _matrix,
             triangle_splitting_enabled);
+    }
+
+    void MeshSpreadWrapper::circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks)
+    {
+        Slic3r::Vec3f cursor_center(center.x, center.y, center.z);
+        Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
+        float radius_world = radius;
+        Slic3r::Transform3d trafo = Slic3r::Transform3d::Identity();
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
+
+        std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::Circle::cursor_factory(cursor_center,
+            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo, clipping_plane);
+
+        bool triangle_splitting_enabled = true;
+
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
+        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
+
+        m_triangle_selector->select_patch(facet_start, std::move(cursor), new_state, trafo_no_translate,
+            triangle_splitting_enabled);
+
+        std::vector<int> dirty_source_triangles;
+        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
+        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
     void MeshSpreadWrapper::updateData()
@@ -317,6 +341,65 @@ namespace spread
         }
     }
 
+    void MeshSpreadWrapper::seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour)
+    {
+        contour.clear();
+
+        float seed_fill_angle = 30.f;
+
+        Slic3r::Transform3d t;
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
+
+        if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
+        {
+            m_triangle_selector->seed_fill_select_triangles(
+                Slic3r::Vec3f()
+                , facet_start
+                , t
+                , clipping_plane
+                , seed_fill_angle
+                , false);
+
+            get_current_select_contours(contour);
+        }
+    }
+
+    void MeshSpreadWrapper::get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset)
+    {
+        std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
+        contour.clear();
+
+        int size = (int)contour_edges.size();
+        if (size == 0)
+            return;
+
+        contour.resize(2 * size);
+        for(int i = 0; i < size; ++i)
+        {
+            const Slic3r::Vec2i& edge = contour_edges.at(i);
+            contour.at(2 * i) = toVector(m_triangle_selector->vertex(edge(0))) + offset;
+            contour.at(2 * i + 1) = toVector(m_triangle_selector->vertex(edge(1))) + offset;
+        }
+    }
+
+    void MeshSpreadWrapper::dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks)
+    {
+        chunks.clear();
+        int size = (int)m_chunkFaces.size();
+        std::vector<bool> chunk_dirty(size, false);
+        
+        for (int source : dirty_source_triangls)
+        {
+            chunk_dirty.at(m_faceChunkIDs[source]) = true;
+        }
+
+        for (int i = 0; i < size; ++i)
+        {
+            if (chunk_dirty.at(i))
+                chunks.push_back(i);
+        }
+    }
+
     trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(const TrimeshType& type)
     {
         if (m_color_plane.empty())
@@ -394,6 +477,11 @@ namespace spread
         m_data.first.shrink_to_fit();
         m_data.second.shrink_to_fit();
         m_triangle_selector->deserialize(m_data);
+    }
+
+    int MeshSpreadWrapper::source_triangle_index(int index)
+    {
+        return m_triangle_selector->source_triangle(index);
     }
 
     std::vector<std::string> MeshSpreadWrapper::get_data_as_string() const

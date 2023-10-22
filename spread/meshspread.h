@@ -2,6 +2,7 @@
 #define MESH_SPREAD_1595984973500_H
 
 #include "spread/header.h"
+#include <set>
 
 namespace Slic3r {
     class TriangleMesh;
@@ -71,17 +72,19 @@ namespace spread
 
         //POINTER, //三角片 
         void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);
-        void triangle_factory1(int facet, int colorIndex);
+        void triangle(int facet, int colorIndex);
 
         //细分
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
         void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
+        void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         //填充
         void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);
         
         //预填充
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour, const CursorType& cursor_type = CursorType::GAP_FILL);
+        void seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour);
 
         //
         void updateData();
@@ -94,8 +97,13 @@ namespace spread
         std::vector<std::string> get_data_as_string() const;
         void set_triangle_from_data(std::vector<std::string> strList);
         void updateTriangle();
+
+        int source_triangle_index(int index);
     private:
         void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
+
+        void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
+        void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
     private:
         int m_curFacet;
         CursorType  m_curCursor_type;

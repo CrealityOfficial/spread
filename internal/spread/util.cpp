@@ -112,11 +112,6 @@ namespace spread
         return new Slic3r::TriangleMesh(std::move(indexed_set));
     }
 
-    trimesh::vec3 toVector(const stl_vertex& vertex)
-    {
-        return trimesh::vec3(vertex.x(), vertex.y(), vertex.z());
-    }
-
     void indexed2TriangleSoup(const indexed_triangle_set& indexed, std::vector<trimesh::vec3>& triangles)
     {
         triangles.clear();

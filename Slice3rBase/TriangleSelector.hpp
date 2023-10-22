@@ -312,11 +312,17 @@ public:
 
     void getVectors(std::vector<stl_vertex>& vertex);
     stl_vertex& getVectors(int index);
+    const stl_vertex& vertex(int index) const; //quick
+
     void getFacets(std::vector<std::array<int, 5>>& facets);
     int getFacetsNum();
+    int source_triangle(int index);
 
     void setNeighbors(const std::vector<Vec3i>& neighbors);
     const std::vector<Vec3i>& originNeighbors() const;
+
+    void clear_dirty_source_triangles(std::vector<int>& triangles);
+    void dirty_triangle(Triangle* tri);
 protected:
     // Triangle and info about how it's split.
     class Triangle {
@@ -395,6 +401,9 @@ protected:
     const TriangleMesh &m_mesh;
     std::vector<Vec3i> m_neighbors;
     const std::vector<Vec3f> m_face_normals;
+
+    //aoob
+    std::vector<int> m_dirty_source_triangles;
 
     // BBS
     float m_edge_limit = 0.6f;

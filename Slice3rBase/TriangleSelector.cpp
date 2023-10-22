@@ -919,6 +919,7 @@ bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &nei
     if (num_of_inside_vertices == 3) {
         // dump any subdivision and select whole triangle
         undivide_triangle(facet_idx);
+        dirty_triangle(tr);
         tr->set_state(type);
     } else {
         // the triangle is partially inside, let's recursively divide it
@@ -933,7 +934,10 @@ bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &nei
         if (triangle_splitting)
             split_triangle(facet_idx, neighbors);
         else if (!m_triangles[facet_idx].is_split())
+        {
+            dirty_triangle(&m_triangles[facet_idx]);
             m_triangles[facet_idx].set_state(type);
+        }
         tr = &m_triangles[facet_idx]; // might have been invalidated by split_triangle().
 
         int num_of_children = tr->number_of_split_sides() + 1;
@@ -1198,6 +1202,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 
     // If we got here, the children can be removed.
     undivide_triangle(facet_idx);
+    dirty_triangle(&tr);
     tr.set_state(first_child_type);
 }
 
@@ -1269,6 +1274,7 @@ void TriangleSelector::reset()
     m_free_triangles_head = -1;
     m_free_vertices_head = -1;
     m_vertices.reserve(m_mesh.its.vertices.size());
+    m_dirty_source_triangles.resize(m_mesh.its.indices.size(), 0);
     for (const stl_vertex& vert : m_mesh.its.vertices)
         m_vertices.emplace_back(vert);
     m_triangles.reserve(m_mesh.its.indices.size());
@@ -1789,6 +1795,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
                     continue;
                 } else {
                     // root is not split. just set the state and that's it.
+                    dirty_triangle(&m_triangles[triangle_id]);
                     m_triangles[triangle_id].set_state(state);
                     break;
                 }
@@ -1810,7 +1817,9 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
             } else {
                 // this triangle belongs to last split one
                 int child_idx = last.total_children - last.processed_children - 1;
-                m_triangles[m_triangles[last.facet_id].children[child_idx]].set_state(state);
+                int next_idx = m_triangles[last.facet_id].children[child_idx];
+                dirty_triangle(&m_triangles[next_idx]);
+                m_triangles[next_idx].set_state(state);
                 ++last.processed_children;
             }
 
@@ -1896,8 +1905,10 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
 {
     for (Triangle &triangle : m_triangles)
         if (!triangle.is_split() && triangle.is_selected_by_seed_fill())
+        {
+            dirty_triangle(&triangle);
             triangle.set_state(new_state);
-
+        }
     for (Triangle &triangle : m_triangles)
         if (triangle.is_split() && triangle.valid()) {
             size_t facet_idx = &triangle - &m_triangles.front();
@@ -1925,6 +1936,12 @@ stl_vertex& TriangleSelector::getVectors(int index)
     return m_vertices[0].v;
 }
 
+const stl_vertex& TriangleSelector::vertex(int index) const
+{
+    assert(index < m_vertices.size() && index >= 0);
+    return m_vertices.at(index).v;
+}
+
 void TriangleSelector::getFacets(std::vector<std::array<int, 5>>& facets)
 {
     facets.reserve(m_triangles.size());
@@ -1948,6 +1965,11 @@ int TriangleSelector::getFacetsNum()
     return m_triangles.size();
 }
 
+int TriangleSelector::source_triangle(int index)
+{
+    return m_triangles.at(index).source_triangle;
+}
+
 void TriangleSelector::setNeighbors(const std::vector<Vec3i>& neighbors)
 {
     m_neighbors.clear();
@@ -1957,6 +1979,25 @@ void TriangleSelector::setNeighbors(const std::vector<Vec3i>& neighbors)
 const std::vector<Vec3i>& TriangleSelector::originNeighbors() const
 {
     return m_neighbors;
+}
+
+void TriangleSelector::clear_dirty_source_triangles(std::vector<int>& triangles)
+{
+    int count = (int)m_dirty_source_triangles.size();
+    for (int i = 0; i < count; ++i)
+    {
+        if (m_dirty_source_triangles.at(i) > 0)
+        {
+            triangles.push_back(i);
+            m_dirty_source_triangles.at(i) = 0;
+        }
+    }
+}
+
+void TriangleSelector::dirty_triangle(Triangle* tri)
+{
+    if (tri)
+        m_dirty_source_triangles.at(tri->source_triangle) = 1;
 }
 
 TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
