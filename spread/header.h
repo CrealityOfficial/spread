@@ -22,6 +22,7 @@ namespace spread
         trimesh::vec rayDir;
         trimesh::fxform pose;
         float radius;
+        bool mouseDrag{false};
     };
 
     enum SPREAD_API CursorType {

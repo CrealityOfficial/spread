@@ -83,9 +83,9 @@ namespace spread
         //add
         void triangle(int facet, int colorIndex, std::vector<int>& dirty_chunks);
         void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
-        void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour);
+        void circile_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks);
+        void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<std::vector<trimesh::vec3>>& contour);
         void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks);
-
 
         //
         void updateData();

@@ -243,6 +243,33 @@ namespace spread
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
+    void MeshSpreadWrapper::circile_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks)
+    {
+        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
+
+        Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
+        _clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
+        _clipping_plane.offset = clipping_plane.offset;
+
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+
+        bool triangle_splitting_enabled = true;
+
+        std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::DoublePointCursor::cursor_factory(
+            Slic3r::Vec3f(first_center),
+            Slic3r::Vec3f(second_center),
+            Slic3r::Vec3f(camera_pos),
+            cursor_radius,
+            Slic3r::TriangleSelector::CursorType::CIRCLE,
+            trafo_no_translate, _clipping_plane);
+
+        m_triangle_selector->select_patch(clipping_plane.facet_idx, std::move(cursor), new_state, trafo_no_translate, triangle_splitting_enabled, 0.f);
+
+        std::vector<int> dirty_source_triangles;
+        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
+        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+    }
+
     void MeshSpreadWrapper::updateData()
     {
         m_data.first.shrink_to_fit();
