@@ -67,30 +67,28 @@ namespace spread
         int chunkCount();
         void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
 
-        //设置颜色
-        void setColorPlane(const std::vector<trimesh::vec>& color_plane);
-
         //POINTER, //三角片 
-        void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);
-        void triangle(int facet, int colorIndex);
+        void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);       
 
         //细分
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
         void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
-        void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         //填充
-        void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);
-        
+        void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);        
+
         //预填充
-        void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour, const CursorType& cursor_type = CursorType::GAP_FILL);
         void seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour);
+
+        //add
+        void triangle(int facet, int colorIndex, std::vector<int>& dirty_chunks);
+        void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
+        void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour);
+        void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks);
+
 
         //
         void updateData();
-
-        //返回
-        trimesh::TriMesh* getTrimesh(const TrimeshType& type = TrimeshType::ALL);
 
         std::string get_triangle_as_string(int triangle_idx) const;
         void set_triangle_from_string(int triangle_id, const std::string& str);
@@ -105,9 +103,6 @@ namespace spread
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
     private:
-        int m_curFacet;
-        CursorType  m_curCursor_type;
-        std::vector<trimesh::vec> m_color_plane;
         std::unique_ptr<Slic3r::TriangleMesh> m_mesh;
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
         std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;

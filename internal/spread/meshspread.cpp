@@ -108,14 +108,6 @@ namespace spread
         indexed2TriangleSoup(indexed, positions);
     }
 
-    void MeshSpreadWrapper::setColorPlane(const std::vector<trimesh::vec>& color_plane)
-    {
-        if (!color_plane.empty())
-        {
-            m_color_plane = color_plane;
-        }
-    }
-
     int isInMesh(const trimesh::vec& center, const trimesh::vec& normal)
     {
         return 0;
@@ -123,18 +115,20 @@ namespace spread
 
     void MeshSpreadWrapper::triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type)
     {
-        m_curFacet = facet_start;
-        m_curCursor_type = cursor_type;
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->set_facet(facet_start, new_state);
 
         updateData();
     }
 
-    void MeshSpreadWrapper::triangle(int facet, int colorIndex)
+    void MeshSpreadWrapper::triangle(int facet, int colorIndex, std::vector<int>& dirty_chunks)
     {
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->set_facet(facet, new_state);
+
+        std::vector<int> dirty_source_triangles;
+        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
+        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
     void MeshSpreadWrapper::triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector)
@@ -230,16 +224,16 @@ namespace spread
         Slic3r::Vec3f cursor_center(center.x, center.y, center.z);
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         float radius_world = radius;
-        Slic3r::Transform3d trafo = Slic3r::Transform3d::Identity();
+        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
         Slic3r::TriangleSelector::ClippingPlane clipping_plane;
 
         std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::Circle::cursor_factory(cursor_center,
-            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo, clipping_plane);
+            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo_no_translate, clipping_plane);
 
         bool triangle_splitting_enabled = true;
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
-        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
+        //Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
 
         m_triangle_selector->select_patch(facet_start, std::move(cursor), new_state, trafo_no_translate,
             triangle_splitting_enabled);
@@ -254,7 +248,6 @@ namespace spread
         m_data.first.shrink_to_fit();
         m_data.second.shrink_to_fit();
         m_data = m_triangle_selector->serialize();
-        //m_triangle_selector->deserialize(m_data);
     }
 
     void MeshSpreadWrapper::bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type)
@@ -265,46 +258,34 @@ namespace spread
         bool force_reselection = true;
 
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
-        //_clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
         _clipping_plane.normal = Slic3r::Vec3f(0.f,0.f,1.f);
-        //_clipping_plane.offset = 0.0f;
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
 
-
-        //m_triangle_selector->bucket_fill_select_triangles(
-        //    Slic3r::Vec3f(center)
-        //    , clipping_plane.facet_idx
-        //    , _clipping_plane
-        //    , seed_fill_angle
-        //    , propagate
-        //    , false);
-
-
         m_triangle_selector->seed_fill_apply_on_triangles(new_state);
-
-        //m_triangle_selector->bucket_fill_select_triangles(
-        //    Slic3r::Vec3f(center)
-        //    , clipping_plane.facet_idx
-        //    , _clipping_plane
-        //    , seed_fill_angle
-        //    , propagate
-        //    , force_reselection);
 
         updateData();
     }
 
-    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour, const CursorType& cursor_type)
+    void MeshSpreadWrapper::bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks)
     {
-        Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(cursor_type);
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+        m_triangle_selector->seed_fill_apply_on_triangles(new_state);
+
+        std::vector<int> dirty_source_triangles;
+        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
+        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+    }
+
+    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour)
+    {
+        Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL);
         float seed_fill_angle = 30.f;
         bool propagate = true;
         bool force_reselection = true;
 
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
-        //_clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
         _clipping_plane.normal = Slic3r::Vec3f(0.f, 0.f, 1.f);
-        //_clipping_plane.offset = 0.0f;
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
 
@@ -398,29 +379,6 @@ namespace spread
             if (chunk_dirty.at(i))
                 chunks.push_back(i);
         }
-    }
-
-    trimesh::TriMesh* MeshSpreadWrapper::getTrimesh(const TrimeshType& type)
-    {
-        if (m_color_plane.empty())
-        {
-            return nullptr;
-        }
-
-        trimesh::TriMesh* triMesh = new trimesh::TriMesh();
-        triangle_selector2trimesh(triMesh, m_triangle_selector.get());
-
-        if (type == TrimeshType::ALL)
-        {
-            m_color_plane;
-            triMesh->colors.clear();
-            triMesh->colors.reserve(triMesh->faces.size());
-            for (int i = 0; i < triMesh->faces.size(); i++)
-            {
-                triMesh->colors.push_back(m_color_plane[triMesh->flags.at(i)% m_color_plane.size()]);
-            }
-        }
-        return triMesh;
     }
 
     std::string MeshSpreadWrapper::get_triangle_as_string(int triangle_idx) const

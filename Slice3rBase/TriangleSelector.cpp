@@ -962,6 +962,7 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
     undivide_triangle(facet_idx);
     assert(! m_triangles[facet_idx].is_split());
     m_triangles[facet_idx].set_state(state);
+    dirty_triangle(&m_triangles[facet_idx]);
 }
 
 // called by select_patch()->select_triangle()...select_triangle()
