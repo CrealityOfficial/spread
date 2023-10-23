@@ -243,33 +243,6 @@ namespace spread
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
-    void MeshSpreadWrapper::circile_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks)
-    {
-        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
-
-        Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
-        _clipping_plane.normal = Slic3r::Vec3f(clipping_plane.normal);
-        _clipping_plane.offset = clipping_plane.offset;
-
-        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
-
-        bool triangle_splitting_enabled = true;
-
-        std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::DoublePointCursor::cursor_factory(
-            Slic3r::Vec3f(first_center),
-            Slic3r::Vec3f(second_center),
-            Slic3r::Vec3f(camera_pos),
-            cursor_radius,
-            Slic3r::TriangleSelector::CursorType::CIRCLE,
-            trafo_no_translate, _clipping_plane);
-
-        m_triangle_selector->select_patch(clipping_plane.facet_idx, std::move(cursor), new_state, trafo_no_translate, triangle_splitting_enabled, 0.f);
-        
-        std::vector<int> dirty_source_triangles;
-        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
-        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
-    }
-
     void MeshSpreadWrapper::double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
         float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks)
     {
@@ -320,9 +293,9 @@ namespace spread
         updateData();
     }
 
-    void MeshSpreadWrapper::bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks)
+    void MeshSpreadWrapper::bucket_fill_select_triangles(const trimesh::vec& center, int colorIndex, std::vector<int>& dirty_chunks)
     {
-        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         m_triangle_selector->seed_fill_apply_on_triangles(new_state);
 
         std::vector<int> dirty_source_triangles;
@@ -330,7 +303,7 @@ namespace spread
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
-    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<std::vector<trimesh::vec3>>& contour)
+    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour)
     {
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL);
         float seed_fill_angle = 30.f;
@@ -338,15 +311,12 @@ namespace spread
         bool force_reselection = true;
 
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
-        _clipping_plane.normal = Slic3r::Vec3f(0.f, 0.f, 1.f);
-
-        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(clipping_plane.extruderIndex);
-
-        if (clipping_plane.facet_idx >= 0 && clipping_plane.facet_idx < m_triangle_selector->getFacetsNum())
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
+        if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
         {
             m_triangle_selector->bucket_fill_select_triangles(
                 Slic3r::Vec3f(center)
-                , clipping_plane.facet_idx
+                , facet_start
                 , _clipping_plane
                 , seed_fill_angle
                 , propagate

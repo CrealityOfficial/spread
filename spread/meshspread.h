@@ -74,21 +74,21 @@ namespace spread
         void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
         void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
-        void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
-        void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
-            float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         //填充
         void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);        
 
         //预填充
         void seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour);
 
+
         //add
         void triangle(int facet, int colorIndex, std::vector<int>& dirty_chunks);
         void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
-        void circile_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks);
-        void bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<std::vector<trimesh::vec3>>& contour);
-        void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<int>& dirty_chunks);
+        void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
+            float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
+        void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour);
+        void bucket_fill_select_triangles(const trimesh::vec& center,int colorIndex, std::vector<int>& dirty_chunks);
+
 
         //
         void updateData();
