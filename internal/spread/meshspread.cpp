@@ -277,7 +277,7 @@ namespace spread
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
-    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, const trimesh::vec& rayDir, std::vector<std::vector<trimesh::vec3>>& contour)
+    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, const ClippingPlane& clipping_plane, std::vector<std::vector<trimesh::vec3>>& contour)
     {
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL);
         float seed_fill_angle = 30.f;
@@ -299,23 +299,21 @@ namespace spread
                 , propagate
                 , false);
 
-
-            trimesh::vec offset = rayDir * -1;
             std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
             contour.reserve(contour_edges.size());
             for (const Slic3r::Vec2i& edge : contour_edges) {
                 std::vector<trimesh::vec> line;
                 int index= edge(0);
                 auto vector = m_triangle_selector->getVectors(index);
-                line.emplace_back(trimesh::vec3(vector.x() + offset.x, 
-                                                vector.y() + offset.y, 
-                                                vector.z() + offset.z));
+                line.emplace_back(trimesh::vec3(vector.x(), 
+                                                vector.y(), 
+                                                vector.z()));
 
                 index = edge(1);
                 vector = m_triangle_selector->getVectors(index);
-                line.emplace_back(trimesh::vec3(vector.x() + offset.x, 
-                                                vector.y() + offset.y, 
-                                                vector.z() + offset.z));
+                line.emplace_back(trimesh::vec3(vector.x(), 
+                                                vector.y(), 
+                                                vector.z()));
 
                 contour.emplace_back(line);
             }
