@@ -463,6 +463,19 @@ namespace spread
         return m_triangle_selector->source_triangle(index);
     }
 
+    int MeshSpreadWrapper::chunkId2FaceId(int chunkId, int index)
+    {
+        if (chunkId>= 0 && chunkId < m_faceChunkIDs.size())
+        {
+            if (index >=0 && index < m_chunkFaces[chunkId].size())
+            {
+                return m_chunkFaces[chunkId][index];
+            }
+        }
+
+        return 0;
+    }
+
     std::vector<std::string> MeshSpreadWrapper::get_data_as_string() const
     {
         std::vector<std::string> data;

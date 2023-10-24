@@ -16,6 +16,8 @@ namespace spread
     struct SPREAD_API SceneData
     {
         int faceId;
+        int chunkId;
+        int chunkIndex;
         trimesh::vec center;
         trimesh::vec cameraPos;
         trimesh::vec normal;

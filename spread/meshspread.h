@@ -100,6 +100,7 @@ namespace spread
         void updateTriangle();
 
         int source_triangle_index(int index);
+        int chunkId2FaceId(int chunkId, int index);
     private:
         void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
 
