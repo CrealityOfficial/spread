@@ -5,8 +5,11 @@ __assert_target(trimesh2)
 
 __cc_find(Eigen)
 __assert_target(eigen)
+
+__cc_find(msbase)
+__assert_target(msbase)
 	
-set(ILIBS trimesh2) 
+set(ILIBS trimesh2 msbase) 
 set(LIBS eigen) 
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/spread/ SRCS1)

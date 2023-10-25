@@ -2,6 +2,7 @@
 #include "util.h"
 #include "Slice3rBase/TriangleMesh.hpp"
 #include "Slice3rBase/TriangleSelector.hpp"
+#include "msbase/mesh/get.h"
 
 #define MAX_RADIUS 8
 #define  PI 3.141592 
@@ -21,6 +22,27 @@ namespace spread
         //m_data.swap(std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>());
     }
 
+
+    double count_triangle_area(trimesh::vec& a, trimesh::vec& b, trimesh::vec& c) {
+        double area = -1;
+
+        double side[3];//存储三条边的长度;
+
+        side[0] = sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2));
+        side[1] = sqrt(pow(a.x - c.x, 2) + pow(a.y - c.y, 2) + pow(a.z - c.z, 2));
+        side[2] = sqrt(pow(c.x - b.x, 2) + pow(c.y - b.y, 2) + pow(c.z - b.z, 2));
+
+        //不能构成三角形;
+        if (side[0] + side[1] <= side[2] || side[0] + side[2] <= side[1] || side[1] + side[2] <= side[0]) return area;
+
+        //利用海伦公式。s=sqr(p*(p-a)(p-b)(p-c)); 
+        double p = (side[0] + side[1] + side[2]) / 2; //半周长;
+        area = sqrt(p * (p - side[0]) * (p - side[1]) * (p - side[2]));
+
+        return area;
+    }
+
+
     void MeshSpreadWrapper::setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer)
     {
         if (mesh == nullptr)
@@ -36,57 +58,75 @@ namespace spread
         m_mesh.reset(simpleConvert(mesh, tracer));
         m_triangle_selector.reset(new Slic3r::TriangleSelector(*m_mesh));
 
-        //split chunks
         const std::vector<Slic3r::Vec3i>& neigbs = m_triangle_selector->originNeighbors();
-        int faceCount = mesh->faces.size();
-        assert(faceCount == (int)neigbs.size());
-
-        int chunkCount = 10;
-        if (faceCount < chunkCount)
-            chunkCount = faceCount;
-
-        int currentChunk = 0;
-        m_chunkFaces.resize(chunkCount);
-        m_faceChunkIDs.resize(faceCount, -1);
-
-        float s = 1.0 * PI * MAX_RADIUS * MAX_RADIUS;
-        int chunkSize = faceCount / chunkCount;
-        for (int i = 0; i < faceCount; ++i)
+        std::vector<trimesh::ivec3> _neigbs(neigbs.size());
+        for (int i=0;i< neigbs.size();i++)
         {
-            if (m_faceChunkIDs.at(i) >= 0)
-                continue;
-
-            std::set<int> seeds;
-            seeds.insert(i);
-            std::set<int> next_seeds;
-
-            while (!seeds.empty())
-            {
-                std::vector<int>& chunks = m_chunkFaces.at(currentChunk);
-
-                for (int s : seeds)
-                {
-                    const Slic3r::Vec3i& nei = neigbs.at(s);
-                    chunks.push_back(s);
-                    m_faceChunkIDs.at(s) = currentChunk;
-
-                    for (int j = 0; j < 3; ++j)
-                    {
-                        if (nei[j] >= 0 && m_faceChunkIDs.at(nei[j]) < 0)
-                            next_seeds.insert(nei[j]);
-                    }
-                }
-
-                if ((chunks.size() > chunkSize) && (currentChunk < chunkCount - 1))
-                {
-                    currentChunk++;
-                    next_seeds.clear();
-                }
-
-                next_seeds.swap(seeds);
-                next_seeds.clear();
-            }
+            _neigbs[i] = trimesh::ivec3(neigbs[i].x(), neigbs[i].y(), neigbs[i].z());
         }
+        const float max_area = 1.0 * PI * MAX_RADIUS * MAX_RADIUS * 5;
+        msbase::generateChunk( mesh, _neigbs, max_area,m_faceChunkIDs,m_chunkFaces);
+
+        return;
+
+        ////split chunks
+        ////const std::vector<Slic3r::Vec3i>& neigbs = m_triangle_selector->originNeighbors();
+        //int faceCount = mesh->faces.size();
+        //assert(faceCount == (int)neigbs.size());
+
+        //int chunkCount = 50;
+        //if (faceCount < chunkCount)
+        //    chunkCount = faceCount;
+
+        //int currentChunk = 0;
+        //m_chunkFaces.resize(chunkCount);
+        //m_faceChunkIDs.resize(faceCount, -1);
+
+        ////const float max_area = 1.0 * PI * MAX_RADIUS * MAX_RADIUS * 5;
+        //float area = 0.0f;
+        //int chunkSize = faceCount / chunkCount;
+        //for (int i = 0; i < faceCount; ++i)
+        //{
+        //    if (m_faceChunkIDs.at(i) >= 0)
+        //        continue;
+
+        //    std::set<int> seeds;
+        //    seeds.insert(i);
+        //    std::set<int> next_seeds;
+
+        //    while (!seeds.empty())
+        //    {
+        //        std::vector<int>& chunks = m_chunkFaces.at(currentChunk);
+
+        //        for (int s : seeds)
+        //        {
+        //            const Slic3r::Vec3i& nei = neigbs.at(s);
+        //            chunks.push_back(s);
+
+        //            area += count_triangle_area(mesh->vertices[mesh->faces[s].x]
+        //                , mesh->vertices[mesh->faces[s].y]
+        //                , mesh->vertices[mesh->faces[s].z]);
+
+        //            m_faceChunkIDs.at(s) = currentChunk;
+
+        //            for (int j = 0; j < 3; ++j)
+        //            {
+        //                if (nei[j] >= 0 && m_faceChunkIDs.at(nei[j]) < 0)
+        //                    next_seeds.insert(nei[j]);
+        //            }
+        //        }
+
+        //        if (/*(chunks.size() > chunkSize)*/  (next_seeds.empty() || area > max_area) && (currentChunk < chunkCount - 1))
+        //        {
+        //            currentChunk++;
+        //            next_seeds.clear();
+        //            area = 0.0f;
+        //        }
+
+        //        next_seeds.swap(seeds);
+        //        next_seeds.clear();
+        //    }
+        //}
 
         //for (size_t i = 0; i < m_chunkFaces.size(); i++)
         //{
