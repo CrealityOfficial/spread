@@ -68,17 +68,17 @@ namespace spread
         void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
 
         //POINTER, //三角片 
-        void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);       
+        //void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);       
 
         //细分
-        void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
-        void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
+        //void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
+        //void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
    
         //填充
-        void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);        
+        //void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);        
 
         //预填充
-        void seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour);
+        //void seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour);
 
 
         //add
