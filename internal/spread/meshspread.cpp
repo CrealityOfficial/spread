@@ -3,6 +3,9 @@
 #include "Slice3rBase/TriangleMesh.hpp"
 #include "Slice3rBase/TriangleSelector.hpp"
 
+#define MAX_RADIUS 8
+#define  PI 3.141592 
+
 namespace spread
 {
 
@@ -13,7 +16,9 @@ namespace spread
 
     MeshSpreadWrapper::~MeshSpreadWrapper()
     {
-
+        m_chunkFaces.clear();
+        m_faceChunkIDs.clear();
+        //m_data.swap(std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>());
     }
 
     void MeshSpreadWrapper::setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer)
@@ -23,7 +28,7 @@ namespace spread
 
         m_chunkFaces.clear();
         m_faceChunkIDs.clear();
-        m_data.swap(std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>());
+        //m_data.swap(std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>());
 
         if (m_triangle_selector != nullptr)
              m_triangle_selector->reset();
@@ -44,6 +49,7 @@ namespace spread
         m_chunkFaces.resize(chunkCount);
         m_faceChunkIDs.resize(faceCount, -1);
 
+        float s = 1.0 * PI * MAX_RADIUS * MAX_RADIUS;
         int chunkSize = faceCount / chunkCount;
         for (int i = 0; i < faceCount; ++i)
         {
@@ -77,11 +83,22 @@ namespace spread
                     next_seeds.clear();
                 }
 
-
                 next_seeds.swap(seeds);
                 next_seeds.clear();
             }
         }
+
+        //for (size_t i = 0; i < m_chunkFaces.size(); i++)
+        //{
+        //    trimesh::TriMesh _mesh;
+        //    _mesh.vertices = mesh->vertices;
+        //    for (size_t j = 0; j < m_chunkFaces[i].size(); j++)
+        //    {
+        //        _mesh.faces.push_back(mesh->faces[m_chunkFaces[i][j]]);
+        //    }
+        //    std::string str = "d:/_" + std::to_string(i) + ".stl";
+        //    _mesh.write(str);
+        //}
     }
 
     void MeshSpreadWrapper::testChunk()
