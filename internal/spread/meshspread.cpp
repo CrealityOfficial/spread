@@ -2,7 +2,7 @@
 #include "util.h"
 #include "Slice3rBase/TriangleMesh.hpp"
 #include "Slice3rBase/TriangleSelector.hpp"
-#include "msbase/mesh/get.h"
+#include "msbase/mesh/chunk.h"
 
 #define MAX_RADIUS 8
 #define  PI 3.141592 
