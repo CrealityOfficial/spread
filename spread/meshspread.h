@@ -19,13 +19,6 @@ namespace spread
         size_t facet_idx;//面索引
         trimesh::vec3 normal;//法线
         int extruderIndex;
-
-        float offset;
-    };
-
-    enum SPREAD_API TrimeshType {
-        ADD,
-        ALL
     };
 
     enum class SPREAD_API EnforcerBlockerType : int8_t {
@@ -67,27 +60,13 @@ namespace spread
         int chunkCount();
         void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
 
-        //POINTER, //三角片 
-        //void triangle_factory(int facet_start, int colorIndex, const CursorType& cursor_type = CursorType::POINTER);       
-
-        //细分
-        //void cursor_factory(const trimesh::vec& center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
-        //void cursor_factory(const trimesh::vec& first_center, const trimesh::vec& second_center, const trimesh::vec& camera_pos, const float& cursor_radius, const CursorType& cursor_type, const trimesh::fxform& trafo_matrix, const ClippingPlane& clipping_plane);
-   
-        //填充
-        //void bucket_fill_select_triangles(const trimesh::vec& center, const ClippingPlane& clipping_plane, const CursorType& cursor_type = CursorType::GAP_FILL);        
-
-        //预填充
-        //void seed_fill_select_triangles_preview1(int facet_start, std::vector<trimesh::vec3>& contour);
-
-
         //add
         void triangle(int facet, int colorIndex, std::vector<int>& dirty_chunks);
         void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
             float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour,bool isFill=true);
-        void bucket_fill_select_triangles(const trimesh::vec& center,int colorIndex, std::vector<int>& dirty_chunks);
+        void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
 
         //获取序列化数据
         void updateData();
@@ -104,8 +83,6 @@ namespace spread
         int source_triangle_index(int index);
         int chunkId2FaceId(int chunkId, int index);
     private:
-        void triangle_selector2trimesh(trimesh::TriMesh* mesh, Slic3r::TriangleSelector* triangle_selector);
-
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
     private:
