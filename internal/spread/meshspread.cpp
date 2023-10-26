@@ -520,8 +520,6 @@ namespace spread
 
     void MeshSpreadWrapper::updateTriangle()
     {
-        m_data.first.shrink_to_fit();
-        m_data.second.shrink_to_fit();
         m_triangle_selector->deserialize(m_data);
     }
 
