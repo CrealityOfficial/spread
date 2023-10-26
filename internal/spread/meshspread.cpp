@@ -19,7 +19,8 @@ namespace spread
     {
         m_chunkFaces.clear();
         m_faceChunkIDs.clear();
-        //m_data.swap(std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>());
+        m_data.first.clear();
+        m_data.second.clear();
     }
 
     void MeshSpreadWrapper::setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer)
@@ -29,7 +30,8 @@ namespace spread
 
         m_chunkFaces.clear();
         m_faceChunkIDs.clear();
-        //m_data.swap(std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>());
+        m_data.first.clear();
+        m_data.second.clear();
 
         if (m_triangle_selector != nullptr)
              m_triangle_selector->reset();
@@ -543,6 +545,8 @@ namespace spread
 
     void MeshSpreadWrapper::set_triangle_from_data(std::vector<std::string> strList)
     {
+        m_data.first.clear();
+        m_data.second.clear();
         int facets_count = m_mesh->its.indices.size();
         assert(strList.size() == facets_count);
         for (int i = 0; i < facets_count; ++i)
