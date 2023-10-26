@@ -89,11 +89,12 @@ namespace spread
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour,bool isFill=true);
         void bucket_fill_select_triangles(const trimesh::vec& center,int colorIndex, std::vector<int>& dirty_chunks);
 
-
         //获取序列化数据
         void updateData();
         //解序列化数据
         void updateTriangle();
+
+        void reset();
 
         std::string get_triangle_as_string(int triangle_idx) const;
         void set_triangle_from_string(int triangle_id, const std::string& str);
