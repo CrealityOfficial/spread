@@ -364,12 +364,18 @@ namespace spread
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
-    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour)
+    void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour, bool isFill)
     {
-        Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL);
-        float seed_fill_angle = 30.f;
+        Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL); 
+        float seed_fill_angle = 30.0f;
         bool propagate = true;
         bool force_reselection = true;
+
+        if (!isFill)
+        {
+            seed_fill_angle = -1.0f;
+            propagate = false;
+        }
 
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
