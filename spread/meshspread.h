@@ -86,19 +86,20 @@ namespace spread
         void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
             float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
-        void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour);
+        void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour,bool isFill=true);
         void bucket_fill_select_triangles(const trimesh::vec& center,int colorIndex, std::vector<int>& dirty_chunks);
 
 
-        //
+        //获取序列化数据
         void updateData();
+        //解序列化数据
+        void updateTriangle();
 
         std::string get_triangle_as_string(int triangle_idx) const;
         void set_triangle_from_string(int triangle_id, const std::string& str);
         std::vector<std::string> get_data_as_string() const;
         void set_triangle_from_data(std::vector<std::string> strList);
-        void updateTriangle();
-
+        
         int source_triangle_index(int index);
         int chunkId2FaceId(int chunkId, int index);
     private:
