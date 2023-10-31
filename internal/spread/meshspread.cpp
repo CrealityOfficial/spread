@@ -2,6 +2,7 @@
 #include "util.h"
 #include "Slice3rBase/TriangleMesh.hpp"
 #include "Slice3rBase/TriangleSelector.hpp"
+#include "Slice3rBase/SLA/IndexedMesh.hpp"
 #include "msbase/mesh/get.h"
 
 #define MAX_RADIUS 8
@@ -37,6 +38,7 @@ namespace spread
              m_triangle_selector->reset();
 
         m_mesh.reset(simpleConvert(mesh, tracer));
+        m_emesh.reset(new Slic3r::sla::IndexedMesh(*m_mesh.get(),true));
         m_triangle_selector.reset(new Slic3r::TriangleSelector(*m_mesh));
 
         const std::vector<Slic3r::Vec3i>& neigbs = m_triangle_selector->originNeighbors();
@@ -312,6 +314,19 @@ namespace spread
         }
 
         return 0;
+    }
+
+    int MeshSpreadWrapper::getFacet(trimesh::vec point, trimesh::vec direction, trimesh::vec& cross)
+    {
+        Slic3r::Vec3d _point(point.x, point.y,point.z);
+        Slic3r::Vec3d _direction(direction.x, direction.y, direction.z);
+        Slic3r::sla::IndexedMesh::hit_result hit = m_emesh->query_ray_hit(_point, _direction);
+
+        if (hit.is_hit())
+        {
+            Slic3r::Vec3d position = hit.position();
+        }
+        return hit.face();
     }
 
     std::vector<std::string> MeshSpreadWrapper::get_data_as_string() const

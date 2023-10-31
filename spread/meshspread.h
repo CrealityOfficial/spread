@@ -82,10 +82,13 @@ namespace spread
         
         int source_triangle_index(int index);
         int chunkId2FaceId(int chunkId, int index);
+
+        int getFacet(trimesh::vec point, trimesh::vec direction,trimesh::vec& cross);
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
     private:
+        std::unique_ptr <Slic3r::sla::IndexedMesh> m_emesh;
         std::unique_ptr<Slic3r::TriangleMesh> m_mesh;
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
         std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;
