@@ -81,16 +81,6 @@ namespace spread
         indexed2TriangleSoup(indexed, positions);
     }
 
-    void MeshSpreadWrapper::triangle(int facet, int colorIndex, std::vector<int>& dirty_chunks)
-    {
-        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
-        m_triangle_selector->set_facet(facet, new_state);
-
-        std::vector<int> dirty_source_triangles;
-        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
-        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
-    }
-
     void MeshSpreadWrapper::circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks)
     {
         Slic3r::Vec3f cursor_center(center.x, center.y, center.z);

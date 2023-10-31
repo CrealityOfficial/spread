@@ -16,12 +16,12 @@ namespace spread
     struct SPREAD_API SceneData
     {
         int faceId;
-        int chunkId;
-        int chunkIndex;
+        //int chunkId;
+        //int chunkIndex;
         trimesh::vec center;
         trimesh::vec cameraPos;
-        trimesh::vec normal;
-        trimesh::fxform pose;
+        //trimesh::vec normal;
+        //trimesh::fxform pose;
         float radius;
     };
 
