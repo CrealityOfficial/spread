@@ -316,7 +316,7 @@ namespace spread
         return 0;
     }
 
-    int MeshSpreadWrapper::getFacet(trimesh::vec point, trimesh::vec direction, trimesh::vec& cross)
+    int MeshSpreadWrapper::getFacet(const trimesh::vec& point, trimesh::vec& direction, trimesh::vec& cross)
     {
         Slic3r::Vec3d _point(point.x, point.y,point.z);
         Slic3r::Vec3d _direction(direction.x, direction.y, direction.z);
@@ -324,7 +324,7 @@ namespace spread
 
         if (hit.is_hit())
         {
-            Slic3r::Vec3d position = hit.position();
+            cross = trimesh::vec(hit.position().x(), hit.position().y(), hit.position().z()) ;
         }
         return hit.face();
     }
