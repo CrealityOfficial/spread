@@ -340,6 +340,9 @@ namespace spread
         m_data.first.clear();
         m_data.second.clear();
         int facets_count = m_mesh->its.indices.size();
+        if (strList.size() == 0)
+            strList = std::vector<std::string>(facets_count);
+        
         assert(strList.size() == facets_count);
         for (int i = 0; i < facets_count; ++i)
         {
