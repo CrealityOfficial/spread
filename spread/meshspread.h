@@ -62,6 +62,8 @@ namespace spread
         //填充、选面
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour,bool isFill=true);
         void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
+        //清除选中状态
+        void seed_fill_unselect_all_triangles();
 
         //获取序列化数据
         void updateData();
