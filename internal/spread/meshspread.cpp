@@ -193,6 +193,11 @@ namespace spread
         }
     }
 
+    void MeshSpreadWrapper::seed_fill_unselect_all_triangles()
+    {
+        m_triangle_selector->seed_fill_unselect_all_triangles();
+    }
+
     void MeshSpreadWrapper::get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset)
     {
         std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
