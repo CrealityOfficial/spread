@@ -12,6 +12,7 @@ namespace spread
 {
 
     MeshSpreadWrapper::MeshSpreadWrapper()
+        : m_highlight_by_angle_threshold_deg(0.0f)
     {
 
     }
@@ -81,6 +82,11 @@ namespace spread
         indexed2TriangleSoup(indexed, positions);
     }
 
+    void MeshSpreadWrapper::set_paint_on_overhangs_only(float angle_threshold_deg)
+    {
+        m_highlight_by_angle_threshold_deg = angle_threshold_deg;
+    }
+
     void MeshSpreadWrapper::circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks)
     {
         Slic3r::Vec3f cursor_center(center.x, center.y, center.z);
@@ -98,7 +104,7 @@ namespace spread
         //Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
 
         m_triangle_selector->select_patch(facet_start, std::move(cursor), new_state, trafo_no_translate,
-            triangle_splitting_enabled);
+            triangle_splitting_enabled, m_highlight_by_angle_threshold_deg);
 
         std::vector<int> dirty_source_triangles;
         m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
@@ -124,7 +130,7 @@ namespace spread
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
 
         m_triangle_selector->select_patch(facet_start, std::move(cursor), new_state, trafo_no_translate,
-            triangle_splitting_enabled);
+            triangle_splitting_enabled, m_highlight_by_angle_threshold_deg);
 
         std::vector<int> dirty_source_triangles;
         m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
@@ -169,7 +175,7 @@ namespace spread
                 , facet_start
                 , _clipping_plane
                 , seed_fill_angle
-                , propagate
+                , m_highlight_by_angle_threshold_deg
                 , false);
 
             std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();

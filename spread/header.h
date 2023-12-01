@@ -22,7 +22,8 @@ namespace spread
         trimesh::vec cameraPos;
         //trimesh::vec normal;
         //trimesh::fxform pose;
-        float radius;
+        float radius{1.0f};
+        float support_angle_threshold_deg{ 0.0f };
     };
 
     enum SPREAD_API CursorType {

@@ -54,11 +54,13 @@ namespace spread
         int chunkCount();
         void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
 
+        void set_paint_on_overhangs_only(float angle_threshold_deg);
+
         //圆形
         void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
         void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
             float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
-        
+
         //填充、选面
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour,bool isFill=true);
         void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
@@ -95,6 +97,7 @@ namespace spread
         std::unique_ptr<Slic3r::TriangleMesh> m_mesh;
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
         std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;
+        float m_highlight_by_angle_threshold_deg;
 
         std::vector<int> m_faceChunkIDs;
         std::vector<std::vector<int>> m_chunkFaces;
