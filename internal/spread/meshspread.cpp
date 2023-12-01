@@ -166,13 +166,16 @@ namespace spread
             propagate = false;
         }
 
+        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
         Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
         {
-            m_triangle_selector->bucket_fill_select_triangles(
+            //m_triangle_selector->bucket_fill_select_triangles(
+            m_triangle_selector->seed_fill_select_triangles(
                 Slic3r::Vec3f(center)
                 , facet_start
+                , trafo_no_translate
                 , _clipping_plane
                 , seed_fill_angle
                 , m_highlight_by_angle_threshold_deg
