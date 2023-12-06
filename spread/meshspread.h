@@ -83,6 +83,9 @@ namespace spread
         void set_triangle_from_string(int triangle_id, const std::string& str);
         std::vector<std::string> get_data_as_string() const;
         void set_triangle_from_data(std::vector<std::string> strList);
+
+        //设置默认颜色
+        void fill_triangles(std::vector<std::string>& strList, int color);
         
         //获取原始面ID
         int source_triangle_index(int index);
