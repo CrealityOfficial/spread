@@ -57,12 +57,17 @@ namespace spread
         void set_paint_on_overhangs_only(float angle_threshold_deg);
 
         //圆形
-        void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
-        void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,
-            float radius, int facet_start, int colorIndex, std::vector<int>& dirty_chunks);
+        void circile_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex
+            , const trimesh::vec& normal, const float offset   //for ClippingPlane
+            , std::vector<int>& dirty_chunks);
+        void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,float radius, int facet_start, int colorIndex
+            , const trimesh::vec& normal, const float offset   //for ClippingPlane
+            , std::vector<int>& dirty_chunks);
 
         //填充、选面
-        void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour,bool isFill=true);
+        void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour
+            , const trimesh::vec& normal, const float offset   //for ClippingPlane
+            , bool isFill=true);
         void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
         //清除选中状态
         void seed_fill_unselect_all_triangles();
