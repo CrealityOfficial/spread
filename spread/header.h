@@ -24,6 +24,8 @@ namespace spread
         //trimesh::fxform pose;
         float radius{1.0f};
         float support_angle_threshold_deg{ 0.0f };
+        trimesh::vec planeNormal;	//剖面法线
+	    float planeOffset { 0 };
     };
 
     enum SPREAD_API CursorType {
