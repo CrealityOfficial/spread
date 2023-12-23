@@ -5,7 +5,7 @@ if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif ()
 
-__conan_import(boost_static)
+__cc_find(boost_static)
 __cc_find(eigen)
 __cc_find(cereal)
 __cc_find(admesh)
