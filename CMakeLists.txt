@@ -24,3 +24,6 @@ include(Slice3rBase.cmake)
 
 __add_common_library(spread OPENMP)
 								
+if(CC_INSTALL_SPREAD)
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/spread spread)
+endif()
