@@ -184,14 +184,25 @@ namespace spread
         if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
         {
             //m_triangle_selector->bucket_fill_select_triangles(
-            m_triangle_selector->seed_fill_select_triangles(
-                Slic3r::Vec3f(center)
-                , facet_start
-                , trafo_no_translate
-                , _clipping_plane
-                , seed_fill_angle
-                , m_highlight_by_angle_threshold_deg
-                , false);
+            if (isFill)
+            {
+                m_triangle_selector->seed_fill_select_triangles(
+                    Slic3r::Vec3f(center)
+                    , facet_start
+                    , trafo_no_translate
+                    , _clipping_plane
+                    , seed_fill_angle
+                    , m_highlight_by_angle_threshold_deg);
+            }
+            else
+            {
+                m_triangle_selector->bucket_fill_select_triangles(
+                    Slic3r::Vec3f(center)
+                    , facet_start
+                    , _clipping_plane
+                    , seed_fill_angle
+                    , propagate);
+            }
 
             std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
             contour.reserve(contour_edges.size());
