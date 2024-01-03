@@ -431,7 +431,7 @@ namespace spread
 
 		// Reserve space for the new triangles upfront, so that the reference to this triangle will not change.
 		{
-			size_t num_triangles_new = m_triangles.size() + m_triangles[facet_idx].number_of_split_sides() + 1;
+			int num_triangles_new = m_triangles.size() + m_triangles[facet_idx].number_of_split_sides() + 1;
 			if (m_triangles.capacity() < num_triangles_new)
 				m_triangles.reserve(next_highest_power_of_64((uint64_t)num_triangles_new));
 		}
