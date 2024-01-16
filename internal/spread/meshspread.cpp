@@ -162,10 +162,11 @@ namespace spread
 
     void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour
         , const trimesh::vec& normal, const float offset
+        , float seed_fill_angle
         , bool isFill)
     {
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL); 
-        float seed_fill_angle = 30.0f;
+        //float seed_fill_angle = 30.0f;
         bool propagate = true;
         bool force_reselection = true;
 
