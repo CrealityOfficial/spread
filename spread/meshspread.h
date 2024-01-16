@@ -63,12 +63,20 @@ namespace spread
         void double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,float radius, int facet_start, int colorIndex
             , const trimesh::vec& normal, const float offset   //for ClippingPlane
             , std::vector<int>& dirty_chunks);
+        //高度填充
+        //除了第三个参数是高度外，其他参数和圆形涂抹一样
+        void height_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float height, int facet_start, int colorIndex
+            , const trimesh::vec& normal, const float offset
+            , std::vector<int>& dirty_chunks);
 
-        //填充、选面
+
+        //填充、选面、边沿填充
+        //增加了一个是否为边沿检测的参数，true为启动边沿检测
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour
             , const trimesh::vec& normal, const float offset   //for ClippingPlane
             , float seed_fill_angle = 30
-            , bool isFill=true);
+            , bool isFill=true
+            , bool isBorder=false);
         void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
         //清除选中状态
         void seed_fill_unselect_all_triangles();
