@@ -39,8 +39,10 @@ namespace spread
     };
 
 
+    class TrianglePatch ;
 
-    class SPREAD_API MeshSpreadWrapper
+
+    class SPREAD_API MeshSpreadWrapper 
     {
     public:
         MeshSpreadWrapper();
@@ -103,6 +105,11 @@ namespace spread
         //块数据转faceID
         int chunkId2FaceId(int chunkId, int index);
 
+        //计算patch面积
+        float get_patch_area(const TrianglePatch& patch);
+        //缝隙填充接口
+        void get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area = 5);
+
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
@@ -112,6 +119,8 @@ namespace spread
         std::unique_ptr <Slic3r::TriangleSelector> m_triangle_selector;
         std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> m_data;
         float m_highlight_by_angle_threshold_deg;
+
+        std::vector<TrianglePatch> m_triangle_patches;
 
         std::vector<int> m_faceChunkIDs;
         std::vector<std::vector<int>> m_chunkFaces;

@@ -11,6 +11,18 @@
 namespace spread
 {
 
+    class TrianglePatch{
+    public:
+        std::vector<float>  patch_vertices;
+        std::vector<int> triangle_indices;
+
+        Slic3r::EnforcerBlockerType patch_state = Slic3r::EnforcerBlockerType::NONE;
+        std::set< Slic3r::EnforcerBlockerType> neighbor_types;
+
+        float area = 0.f;
+    };
+
+
     MeshSpreadWrapper::MeshSpreadWrapper()
         : m_highlight_by_angle_threshold_deg(0.0f)
     {
@@ -168,6 +180,105 @@ namespace spread
         m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
+
+
+    float MeshSpreadWrapper::get_patch_area(const TrianglePatch& patch)
+    {
+        float total_area = 0.f;
+        const std::vector<int>& triangle = patch.triangle_indices;
+        const std::vector<float>& vertices = patch.patch_vertices;
+        const int stride = 9;
+
+        for (int i = 0; i < triangle.size(); i ++)
+        {
+            Slic3r::Vec3f v0(vertices[i * stride], vertices[i * stride + 1], vertices[i * stride + 2]);
+            Slic3r::Vec3f v1(vertices[i * stride+3], vertices[i * stride + 4], vertices[i * stride + 5]);
+            Slic3r::Vec3f v2(vertices[i * stride+6], vertices[i * stride + 7], vertices[i * stride + 8]);
+            total_area += std::abs((v1 - v0).cross(v2 - v0).norm()) / 2;           
+        }                           
+
+        return total_area;
+    }
+
+    void MeshSpreadWrapper::get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area)
+    {
+        auto [neighbors, neighbors_propagated] = m_triangle_selector->precompute_all_neighbors();
+        std::vector<bool>  visited(m_triangle_selector->get_triangles_size(), false);
+
+        int start_face_idx = 0;
+        while (1)
+        {
+            for (; start_face_idx < visited.size(); start_face_idx++) {
+                if (!visited[start_face_idx] && m_triangle_selector->get_triangle_isvalid(start_face_idx) && !m_triangle_selector->get_triangle_issplit(start_face_idx))
+                    break;
+            }
+
+            if (start_face_idx >= m_triangle_selector->get_triangles_size()) break;
+
+            Slic3r::EnforcerBlockerType frist_state = m_triangle_selector->get_triangle_state(start_face_idx);
+            TrianglePatch patch;
+            std::queue<int> facet_queue;
+            facet_queue.push(start_face_idx);
+            
+            while (!facet_queue.empty())
+            {
+                int current_facet = facet_queue.front();
+                facet_queue.pop();
+
+                if (!visited[current_facet]) {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int j = m_triangle_selector->get_triangle_vert_idx(current_facet, i);
+                        int index = int(patch.patch_vertices.size() / 3);
+
+                        patch.patch_vertices.emplace_back(m_triangle_selector->get_vertices_coord(j, 0));
+                        patch.patch_vertices.emplace_back(m_triangle_selector->get_vertices_coord(j, 1));
+                        patch.patch_vertices.emplace_back(m_triangle_selector->get_vertices_coord(j, 2));
+
+                        //patch.triangle_indices.emplace_back(index);
+                    }
+
+                    patch.triangle_indices.push_back(current_facet);
+
+                    std::vector<int> touching_triangles = m_triangle_selector->get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
+
+                    for (const int tr_idx : touching_triangles) {
+                        if (tr_idx < 0)
+                            continue;
+                        if (m_triangle_selector->get_triangle_state(tr_idx) != frist_state)
+                        {
+                            patch.neighbor_types.insert(m_triangle_selector->get_triangle_state(tr_idx));
+                            continue;
+                        }
+                        if (visited[tr_idx])
+                            continue;
+                        facet_queue.push(tr_idx);
+                    }
+                }
+                visited[current_facet] = true;
+            }
+
+            patch.area = get_patch_area(patch);
+            patch.patch_state = frist_state;
+            m_triangle_patches.emplace_back(std::move(patch));
+        }
+
+        dirty_chunks.clear();
+        std::vector<int> dirty_source_triangles;
+        for (TrianglePatch& p : m_triangle_patches)
+        {
+            if (p.area > max_limit_area) continue;
+            for (int tri : p.triangle_indices)
+            {
+                Slic3r::EnforcerBlockerType type = *p.neighbor_types.begin();
+                m_triangle_selector->set_triangle_state(tri, type);
+                dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
+            }
+        }
+       
+        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+    }
+   
 
     void MeshSpreadWrapper::updateData()
     {
@@ -387,7 +498,7 @@ namespace spread
         Slic3r::Vec3d _point(point.x, point.y,point.z);
         Slic3r::Vec3d _direction(direction.x, direction.y, direction.z);
         Slic3r::sla::IndexedMesh::hit_result hit = m_emesh->query_ray_hit(_point, _direction);
-
+        
         if (hit.is_hit())
         {
             cross = trimesh::vec(hit.position().x(), hit.position().y(), hit.position().z()) ;

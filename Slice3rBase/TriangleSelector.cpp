@@ -398,6 +398,24 @@ void TriangleSelector::precompute_all_neighbors_recursive(const int facet_idx, c
     }
 }
 
+
+std::vector<int> TriangleSelector::get_all_touching_triangles(int facet_idx, const Slic3r::Vec3i& neighbors, const Slic3r::Vec3i& neighbors_propagated)
+{
+    assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
+    assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
+    std::vector<int> touching_triangles;
+    Vec3i            vertices = { m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2] };
+    append_touching_subtriangles(neighbors(0), vertices(1), vertices(0), touching_triangles);
+    append_touching_subtriangles(neighbors(1), vertices(2), vertices(1), touching_triangles);
+    append_touching_subtriangles(neighbors(2), vertices(0), vertices(2), touching_triangles);
+
+    for (int neighbor_idx : neighbors_propagated)
+        if (neighbor_idx != -1 && !m_triangles[neighbor_idx].is_split())
+            touching_triangles.emplace_back(neighbor_idx);
+
+    return touching_triangles;
+}
+
 std::pair<std::vector<Vec3i>, std::vector<Vec3i>> TriangleSelector::precompute_all_neighbors() const
 {
     std::vector<Vec3i> neighbors(m_triangles.size(), Vec3i(-1, -1, -1));
@@ -435,6 +453,41 @@ void TriangleSelector::append_touching_subtriangles(int itriangle, int vertexi, 
 
     if (touching.second != -1)
         process_subtriangle(touching.second, Partition::Second);
+}
+
+int TriangleSelector::get_triangles_size()
+{
+    return m_triangles.size();
+}
+
+bool TriangleSelector::get_triangle_isvalid(int facet)
+{
+    return m_triangles[facet].valid();
+}
+bool TriangleSelector::get_triangle_issplit(int facet)
+{
+    return m_triangles[facet].is_split();
+}
+
+EnforcerBlockerType TriangleSelector::get_triangle_state(int facet)
+{
+    return m_triangles[facet].get_state();
+}
+int TriangleSelector::get_triangle_vert_idx(int facet, int vert)
+{
+    return m_triangles[facet].verts_idxs[vert];
+}
+float TriangleSelector::get_vertices_coord(int vert, int idx)
+{
+    return m_vertices[vert].v(idx);
+}
+int TriangleSelector::get_source_triangle(int facet)
+{
+    return m_triangles[facet].source_triangle;
+}
+void TriangleSelector::set_triangle_state(int facet, EnforcerBlockerType type)
+{
+    m_triangles[facet].set_state(type);
 }
 
 // It appends all edges that are touching the edge (vertexi, vertexj) of the triangle and are not selected by seed fill
