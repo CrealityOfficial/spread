@@ -55,6 +55,7 @@ namespace spread
         void testChunk();
         int chunkCount();
         void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
+        void chunk_gap_fill(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags,std::vector<int>& flags_before, std::vector<int>& splitIndices);
 
         void set_paint_on_overhangs_only(float angle_threshold_deg);
 
@@ -108,7 +109,9 @@ namespace spread
         //计算patch面积
         float get_patch_area(const TrianglePatch& patch);
         //缝隙填充接口
-        void get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area = 5);
+        void get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area = 0.f);
+        //执行缝隙填充（无法回复）
+        void apply_triangle_state(std::vector<int> triangle);
 
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
@@ -121,6 +124,7 @@ namespace spread
         float m_highlight_by_angle_threshold_deg;
 
         std::vector<TrianglePatch> m_triangle_patches;
+        std::vector<Slic3r::EnforcerBlockerType>  m_triangle_neighbor_state;
 
         std::vector<int> m_faceChunkIDs;
         std::vector<std::vector<int>> m_chunkFaces;

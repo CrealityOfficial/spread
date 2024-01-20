@@ -94,6 +94,15 @@ namespace spread
         indexed2TriangleSoup(indexed, positions);
     }
 
+    void MeshSpreadWrapper::chunk_gap_fill(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& flags_before, std::vector<int>& splitIndices)
+    {
+        assert(index >= 0 && index < m_chunkFaces.size());
+        indexed_triangle_set indexed;
+        m_triangle_selector->get_chunk_facets(index, m_faceChunkIDs, indexed, flags_before, splitIndices);
+
+        indexed2TriangleSoup(indexed, positions);
+    }
+
     void MeshSpreadWrapper::set_paint_on_overhangs_only(float angle_threshold_deg)
     {
         m_highlight_by_angle_threshold_deg = angle_threshold_deg;
@@ -182,6 +191,16 @@ namespace spread
     }
 
 
+    void MeshSpreadWrapper::apply_triangle_state(std::vector<int> triangle)
+    {
+        for (int ti : triangle)
+        {
+            Slic3r::EnforcerBlockerType type=m_triangle_neighbor_state[ti];
+            m_triangle_selector->set_triangle_state(ti, type);
+        }
+    }
+
+
     float MeshSpreadWrapper::get_patch_area(const TrianglePatch& patch)
     {
         float total_area = 0.f;
@@ -202,6 +221,9 @@ namespace spread
 
     void MeshSpreadWrapper::get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area)
     {
+        m_triangle_patches.clear();
+        m_triangle_neighbor_state.clear();
+        m_triangle_neighbor_state.resize(m_triangle_selector->get_triangles_size(), Slic3r::EnforcerBlockerType::NONE);
         auto [neighbors, neighbors_propagated] = m_triangle_selector->precompute_all_neighbors();
         std::vector<bool>  visited(m_triangle_selector->get_triangles_size(), false);
 
@@ -271,8 +293,9 @@ namespace spread
             for (int tri : p.triangle_indices)
             {
                 Slic3r::EnforcerBlockerType type = *p.neighbor_types.begin();
-                m_triangle_selector->set_triangle_state(tri, type);
-                dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
+                m_triangle_neighbor_state[tri] = type;
+                //m_triangle_selector->set_triangle_state(tri, type);
+                dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));              
             }
         }
        
