@@ -22,6 +22,11 @@ namespace spread
         float area = 0.f;
     };
 
+    class TriangleNeighborState {
+    public:
+        std::vector<Slic3r::EnforcerBlockerType> neighbor_state;
+    };
+
 
     MeshSpreadWrapper::MeshSpreadWrapper()
         : m_highlight_by_angle_threshold_deg(0.0f)
@@ -96,9 +101,14 @@ namespace spread
 
     void MeshSpreadWrapper::chunk_gap_fill(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& flags_before, std::vector<int>& splitIndices)
     {
+        if (m_triangle_neighbor_state.empty()) return;
         assert(index >= 0 && index < m_chunkFaces.size());
         indexed_triangle_set indexed;
         m_triangle_selector->get_chunk_facets(index, m_faceChunkIDs, indexed, flags_before, splitIndices);
+        for (int ti : splitIndices)
+        {
+            flags.push_back((int)m_triangle_neighbor_state[0].neighbor_state[ti]);
+        }
 
         indexed2TriangleSoup(indexed, positions);
     }
@@ -193,9 +203,10 @@ namespace spread
 
     void MeshSpreadWrapper::apply_triangle_state(std::vector<int> triangle)
     {
+        if (m_triangle_neighbor_state.empty()) return;
         for (int ti : triangle)
         {
-            Slic3r::EnforcerBlockerType type=m_triangle_neighbor_state[ti];
+            Slic3r::EnforcerBlockerType type=m_triangle_neighbor_state[0].neighbor_state[ti];
             m_triangle_selector->set_triangle_state(ti, type);
         }
     }
@@ -222,8 +233,10 @@ namespace spread
     void MeshSpreadWrapper::get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area)
     {
         m_triangle_patches.clear();
-        m_triangle_neighbor_state.clear();
-        m_triangle_neighbor_state.resize(m_triangle_selector->get_triangles_size(), Slic3r::EnforcerBlockerType::NONE);
+        TriangleNeighborState tns;
+        tns.neighbor_state.resize(m_triangle_selector->get_triangles_size(), Slic3r::EnforcerBlockerType::NONE);
+        m_triangle_neighbor_state.push_back(tns);
+        
         auto [neighbors, neighbors_propagated] = m_triangle_selector->precompute_all_neighbors();
         std::vector<bool>  visited(m_triangle_selector->get_triangles_size(), false);
 
@@ -293,7 +306,7 @@ namespace spread
             for (int tri : p.triangle_indices)
             {
                 Slic3r::EnforcerBlockerType type = *p.neighbor_types.begin();
-                m_triangle_neighbor_state[tri] = type;
+                m_triangle_neighbor_state[0].neighbor_state[tri] = type;
                 //m_triangle_selector->set_triangle_state(tri, type);
                 dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));              
             }
@@ -317,6 +330,21 @@ namespace spread
         std::vector<int> dirty_source_triangles;
         m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+    }
+
+    void MeshSpreadWrapper::get_height_contour(const trimesh::vec& center, float height, std::vector<std::vector<trimesh::vec3>>& contour)
+    {
+        std::vector<std::vector<Slic3r::Vec3f>> contou;
+        m_triangle_selector->get_height_lines(center.z, center.z+height, contou);
+        for (std::vector<Slic3r::Vec3f>& vtor : contou)
+        {
+            std::vector<trimesh::vec3> line;
+            for (Slic3r::Vec3f& v3f : vtor)
+            {
+                line.push_back(trimesh::vec3(v3f[0], v3f[1], v3f[2]));
+            }
+            contour.push_back(line);
+        }
     }
 
     void MeshSpreadWrapper::bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour

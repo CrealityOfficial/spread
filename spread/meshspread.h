@@ -39,8 +39,8 @@ namespace spread
     };
 
 
-    class TrianglePatch ;
-
+    class TrianglePatch;
+    class TriangleNeighborState;
 
     class SPREAD_API MeshSpreadWrapper 
     {
@@ -55,6 +55,7 @@ namespace spread
         void testChunk();
         int chunkCount();
         void chunk(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& splitIndices);
+        //专用于缝隙填充  flags_before为原始颜色，flags为将要涂的颜色
         void chunk_gap_fill(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags,std::vector<int>& flags_before, std::vector<int>& splitIndices);
 
         void set_paint_on_overhangs_only(float angle_threshold_deg);
@@ -71,7 +72,8 @@ namespace spread
         void height_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float height, int facet_start, int colorIndex
             , const trimesh::vec& normal, const float offset
             , std::vector<int>& dirty_chunks);
-
+        //得到高度轮廓点
+        void get_height_contour(const trimesh::vec& center, float height,std::vector<std::vector<trimesh::vec3>>& contour);
 
         //填充、选面、边沿填充
         //增加了一个是否为边沿检测的参数，true为启动边沿检测
@@ -124,7 +126,7 @@ namespace spread
         float m_highlight_by_angle_threshold_deg;
 
         std::vector<TrianglePatch> m_triangle_patches;
-        std::vector<Slic3r::EnforcerBlockerType>  m_triangle_neighbor_state;
+        std::vector<TriangleNeighborState>  m_triangle_neighbor_state;
 
         std::vector<int> m_faceChunkIDs;
         std::vector<std::vector<int>> m_chunkFaces;

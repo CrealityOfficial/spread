@@ -490,6 +490,55 @@ void TriangleSelector::set_triangle_state(int facet, EnforcerBlockerType type)
     m_triangles[facet].set_state(type);
 }
 
+void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<std::vector<Vec3f>>& contour)
+{
+    for (const Triangle& tr : m_triangles) 
+    {
+        Vec3f v0 = Vec3f(m_vertices[tr.verts_idxs[0]].v(0), m_vertices[tr.verts_idxs[0]].v(1), m_vertices[tr.verts_idxs[0]].v(2));
+        Vec3f v1 = Vec3f(m_vertices[tr.verts_idxs[1]].v(0), m_vertices[tr.verts_idxs[1]].v(1), m_vertices[tr.verts_idxs[1]].v(2));
+        Vec3f v2 = Vec3f(m_vertices[tr.verts_idxs[2]].v(0), m_vertices[tr.verts_idxs[2]].v(1), m_vertices[tr.verts_idxs[2]].v(2));
+        float max_z = std::max({ v0[2],v1[2] ,v2[2] });
+        if (z_bot > max_z) continue;
+        float min_z = std::min({ v0[2],v1[2] ,v2[2] });
+        if (z_top < min_z) continue;
+
+        auto zf = [&](Vec3f v_0, Vec3f v_1, float z) ->Vec3f{
+            float c = v_1[2] - v_0[2];
+            float zc = z - v_0[2];
+            float t = (zc * 1.f) / (c * 1.f);
+            if (t < 0 || t>1) return Vec3f(0,0,0);
+            Vec3f dir = v_1 - v_0;
+            return v_0 + t * dir;
+        };
+       
+        std::vector<Vec3f> container_b;
+        Vec3f z1(0,0,0), z2(0,0,0),z3(0,0,0);
+        z1 = zf(v0, v1, z_bot);
+        if (z1 != Vec3f(0, 0, 0))
+            container_b.push_back(z1);
+        z2 = zf(v1, v2, z_bot);
+        if (z2 != Vec3f(0, 0, 0))
+            container_b.push_back(z2);
+        z3 = zf(v2, v0, z_bot);
+        if (z3 != Vec3f(0, 0, 0))
+            container_b.push_back(z3);
+        contour.push_back(container_b);
+
+        std::vector<Vec3f> container_t;
+        z1= Vec3f(0, 0, 0), z2= Vec3f(0, 0, 0), z3= Vec3f(0, 0, 0);
+        z1 = zf(v0, v1, z_top);
+        if (z1 != Vec3f(0, 0, 0))
+            container_t.push_back(z1);
+        z2 = zf(v1, v2, z_top);
+        if (z2 != Vec3f(0, 0, 0))
+            container_t.push_back(z2);
+        z3 = zf(v2, v0, z_top);
+        if (z3 != Vec3f(0, 0, 0))
+            container_t.push_back(z3);
+        contour.push_back(container_t);
+    }
+}
+
 // It appends all edges that are touching the edge (vertexi, vertexj) of the triangle and are not selected by seed fill
 // It doesn't append the edges that are touching the triangle only by part of the edge that means the triangles are from lower depth.
 void TriangleSelector::append_touching_edges(int itriangle, int vertexi, int vertexj, std::vector<Vec2i> &touching_edges_out) const
