@@ -201,14 +201,17 @@ namespace spread
     }
 
 
-    void MeshSpreadWrapper::apply_triangle_state(std::vector<int> triangle)
+    void MeshSpreadWrapper::apply_triangle_state(std::vector<int>& dirty_chunks)
     {
         if (m_triangle_neighbor_state.empty()) return;
-        for (int ti : triangle)
+        dirty_chunks.clear();                    
+        for (int tri : last_dirty_source_triangles)
         {
-            Slic3r::EnforcerBlockerType type=m_triangle_neighbor_state[0].neighbor_state[ti];
-            m_triangle_selector->set_triangle_state(ti, type);
+            Slic3r::EnforcerBlockerType type = m_triangle_neighbor_state[0].neighbor_state[tri];
+            m_triangle_selector->set_triangle_state(tri, type);
         }
+        
+        dirty_source_triangles_2_chunks(last_dirty_source_triangles, dirty_chunks);
     }
 
 
@@ -230,7 +233,7 @@ namespace spread
         return total_area;
     }
 
-    void MeshSpreadWrapper::get_triangles_per_patch(std::vector<int>& dirty_chunks, float max_limit_area)
+    void MeshSpreadWrapper::get_triangles_per_patch( float max_limit_area)
     {
         m_triangle_patches.clear();
         TriangleNeighborState tns;
@@ -298,8 +301,7 @@ namespace spread
             m_triangle_patches.emplace_back(std::move(patch));
         }
 
-        dirty_chunks.clear();
-        std::vector<int> dirty_source_triangles;
+       // dirty_chunks.clear();     
         for (TrianglePatch& p : m_triangle_patches)
         {
             if (p.area > max_limit_area) continue;
@@ -308,11 +310,11 @@ namespace spread
                 Slic3r::EnforcerBlockerType type = *p.neighbor_types.begin();
                 m_triangle_neighbor_state[0].neighbor_state[tri] = type;
                 //m_triangle_selector->set_triangle_state(tri, type);
-                dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));              
+                last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
             }
         }
        
-        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+       // dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
    
 
