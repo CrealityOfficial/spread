@@ -490,10 +490,18 @@ void TriangleSelector::set_triangle_state(int facet, EnforcerBlockerType type)
     m_triangles[facet].set_state(type);
 }
 
+bool TriangleSelector::get_source_triangles(int facet)
+{
+    return m_dirty_source_triangles[facet];
+}
+
 void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<std::vector<Vec3f>>& contour)
 {
+    int tri_size = m_dirty_source_triangles.size();
+    int idx = 0;
     for (const Triangle& tr : m_triangles) 
     {
+        if (idx >= tri_size) break;
         Vec3f v0 = Vec3f(m_vertices[tr.verts_idxs[0]].v(0), m_vertices[tr.verts_idxs[0]].v(1), m_vertices[tr.verts_idxs[0]].v(2));
         Vec3f v1 = Vec3f(m_vertices[tr.verts_idxs[1]].v(0), m_vertices[tr.verts_idxs[1]].v(1), m_vertices[tr.verts_idxs[1]].v(2));
         Vec3f v2 = Vec3f(m_vertices[tr.verts_idxs[2]].v(0), m_vertices[tr.verts_idxs[2]].v(1), m_vertices[tr.verts_idxs[2]].v(2));
@@ -536,6 +544,7 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
         if (z3 != Vec3f(0, 0, 0))
             container_t.push_back(z3);
         contour.push_back(container_t);
+        idx++;
     }
 }
 

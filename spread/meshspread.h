@@ -111,9 +111,9 @@ namespace spread
         //计算patch面积
         float get_patch_area(const TrianglePatch& patch);
         //缝隙填充接口
-        void get_triangles_per_patch(float max_limit_area = 0.f);
+        void get_triangles_per_patch(float max_limit_area , std::vector<int>& dirty_chunks);
         //执行缝隙填充（无法回复）
-        void apply_triangle_state(std::vector<int>& dirty_chunks );
+        void apply_triangle_state(std::vector<int>& dirty_chunks);
 
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
@@ -126,8 +126,9 @@ namespace spread
         float m_highlight_by_angle_threshold_deg;
 
         std::vector<TrianglePatch> m_triangle_patches;
-        std::vector<TriangleNeighborState>  m_triangle_neighbor_state;
-        std::vector<int> last_dirty_source_triangles;
+        std::vector<TriangleNeighborState>  m_triangle_virtual_state; 
+        std::vector<int> last_triangle_change_state;
+        std::vector<int> before_chunks;
 
         std::vector<int> m_faceChunkIDs;
         std::vector<std::vector<int>> m_chunkFaces;

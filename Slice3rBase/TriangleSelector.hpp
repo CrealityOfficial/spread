@@ -243,6 +243,7 @@ public:
     int get_source_triangle(int facet);
     void set_triangle_state(int facet, EnforcerBlockerType type);
     void get_height_lines(float z_bot,float z_top, std::vector<std::vector<Vec3f>>& contour);
+    bool get_source_triangles(int facet);
     //---------------
     std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;
     void precompute_all_neighbors_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec3i> &neighbors_out, std::vector<Vec3i> &neighbors_normal_out) const;

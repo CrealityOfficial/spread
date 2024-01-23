@@ -24,7 +24,7 @@ namespace spread
 
     class TriangleNeighborState {
     public:
-        std::vector<Slic3r::EnforcerBlockerType> neighbor_state;
+        std::vector<Slic3r::EnforcerBlockerType> virtual_state;
     };
 
 
@@ -101,13 +101,13 @@ namespace spread
 
     void MeshSpreadWrapper::chunk_gap_fill(int index, std::vector<trimesh::vec3>& positions, std::vector<int>& flags, std::vector<int>& flags_before, std::vector<int>& splitIndices)
     {
-        if (m_triangle_neighbor_state.empty()) return;
+        if (m_triangle_virtual_state.empty()) return;
         assert(index >= 0 && index < m_chunkFaces.size());
         indexed_triangle_set indexed;
         m_triangle_selector->get_chunk_facets(index, m_faceChunkIDs, indexed, flags_before, splitIndices);
         for (int ti : splitIndices)
         {
-            flags.push_back((int)m_triangle_neighbor_state[0].neighbor_state[ti]);
+            flags.push_back((int)m_triangle_virtual_state[0].virtual_state[ti]);
         }
 
         indexed2TriangleSoup(indexed, positions);
@@ -122,6 +122,7 @@ namespace spread
         , const trimesh::vec& normal, const float offset
         , std::vector<int>& dirty_chunks)
     {
+       
         Slic3r::Vec3f cursor_center(center.x, center.y, center.z);
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         float radius_world = radius;
@@ -203,15 +204,13 @@ namespace spread
 
     void MeshSpreadWrapper::apply_triangle_state(std::vector<int>& dirty_chunks)
     {
-        if (m_triangle_neighbor_state.empty()) return;
-        dirty_chunks.clear();                    
-        for (int tri : last_dirty_source_triangles)
+        if (last_triangle_change_state.empty()) return;
+        for (int tri : last_triangle_change_state)
         {
-            Slic3r::EnforcerBlockerType type = m_triangle_neighbor_state[0].neighbor_state[tri];
+            Slic3r::EnforcerBlockerType type = m_triangle_virtual_state[0].virtual_state[tri];
             m_triangle_selector->set_triangle_state(tri, type);
-        }
-        
-        dirty_source_triangles_2_chunks(last_dirty_source_triangles, dirty_chunks);
+        }    
+        dirty_source_triangles_2_chunks(last_triangle_change_state, dirty_chunks);
     }
 
 
@@ -233,13 +232,18 @@ namespace spread
         return total_area;
     }
 
-    void MeshSpreadWrapper::get_triangles_per_patch( float max_limit_area)
+    void MeshSpreadWrapper::get_triangles_per_patch( float max_limit_area, std::vector<int>& dirty_chunks)
     {
+        dirty_chunks.clear();
         m_triangle_patches.clear();
+        m_triangle_virtual_state.clear();
         TriangleNeighborState tns;
-        tns.neighbor_state.resize(m_triangle_selector->get_triangles_size(), Slic3r::EnforcerBlockerType::NONE);
-        m_triangle_neighbor_state.push_back(tns);
+        tns.virtual_state.resize(m_triangle_selector->get_triangles_size(), Slic3r::EnforcerBlockerType::NONE);
+        m_triangle_virtual_state.push_back(tns);
         
+        dirty_chunks.insert(dirty_chunks.end(), before_chunks.begin(), before_chunks.end());
+
+
         auto [neighbors, neighbors_propagated] = m_triangle_selector->precompute_all_neighbors();
         std::vector<bool>  visited(m_triangle_selector->get_triangles_size(), false);
 
@@ -301,20 +305,35 @@ namespace spread
             m_triangle_patches.emplace_back(std::move(patch));
         }
 
-       // dirty_chunks.clear();     
+        std::vector<int> new_dirty_chunks; 
+        std::vector<int> last_dirty_source_triangles;
         for (TrianglePatch& p : m_triangle_patches)
         {
-            if (p.area > max_limit_area) continue;
-            for (int tri : p.triangle_indices)
+            Slic3r::EnforcerBlockerType neighbot_type = *p.neighbor_types.begin();
+            Slic3r::EnforcerBlockerType type = p.patch_state;;
+            if (p.area > max_limit_area)
             {
-                Slic3r::EnforcerBlockerType type = *p.neighbor_types.begin();
-                m_triangle_neighbor_state[0].neighbor_state[tri] = type;
-                //m_triangle_selector->set_triangle_state(tri, type);
-                last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
+                for (int tri : p.triangle_indices)
+                {
+                    m_triangle_virtual_state[0].virtual_state[tri] = type;
+                }              
+            }
+            else
+            {
+                for (int tri : p.triangle_indices)
+                {                  
+                    m_triangle_virtual_state[0].virtual_state[tri] = neighbot_type;
+                    
+
+                    last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
+                }
             }
         }
        
-       // dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+        dirty_source_triangles_2_chunks(last_dirty_source_triangles, new_dirty_chunks);
+        before_chunks.clear();
+        before_chunks.insert(before_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
+        dirty_chunks.insert(dirty_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
     }
    
 
