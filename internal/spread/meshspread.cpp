@@ -237,6 +237,7 @@ namespace spread
         dirty_chunks.clear();
         m_triangle_patches.clear();
         m_triangle_virtual_state.clear();
+        last_triangle_change_state.clear();
         TriangleNeighborState tns;
         tns.virtual_state.resize(m_triangle_selector->get_triangles_size(), Slic3r::EnforcerBlockerType::NONE);
         m_triangle_virtual_state.push_back(tns);
@@ -306,7 +307,7 @@ namespace spread
         }
 
         std::vector<int> new_dirty_chunks; 
-        std::vector<int> last_dirty_source_triangles;
+        //std::vector<int> last_dirty_source_triangles;
         for (TrianglePatch& p : m_triangle_patches)
         {
             Slic3r::EnforcerBlockerType neighbot_type = *p.neighbor_types.begin();
@@ -325,12 +326,12 @@ namespace spread
                     m_triangle_virtual_state[0].virtual_state[tri] = neighbot_type;
                     
 
-                    last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
+                    last_triangle_change_state.push_back(m_triangle_selector->get_source_triangle(tri));
                 }
             }
         }
        
-        dirty_source_triangles_2_chunks(last_dirty_source_triangles, new_dirty_chunks);
+        dirty_source_triangles_2_chunks(last_triangle_change_state, new_dirty_chunks);
         before_chunks.clear();
         before_chunks.insert(before_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
         dirty_chunks.insert(dirty_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
