@@ -205,12 +205,14 @@ namespace spread
     void MeshSpreadWrapper::apply_triangle_state(std::vector<int>& dirty_chunks)
     {
         if (last_triangle_change_state.empty()) return;
+        std::vector<int> last_dirty_source_triangles;
         for (int tri : last_triangle_change_state)
         {
             Slic3r::EnforcerBlockerType type = m_triangle_virtual_state[0].virtual_state[tri];
             m_triangle_selector->set_triangle_state(tri, type);
+            last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
         }    
-        dirty_source_triangles_2_chunks(last_triangle_change_state, dirty_chunks);
+        dirty_source_triangles_2_chunks(last_dirty_source_triangles, dirty_chunks);
     }
 
 
@@ -305,9 +307,10 @@ namespace spread
             patch.patch_state = frist_state;
             m_triangle_patches.emplace_back(std::move(patch));
         }
+        if (m_triangle_patches.empty() || m_triangle_patches.size() == 1) return;
 
         std::vector<int> new_dirty_chunks; 
-        //std::vector<int> last_dirty_source_triangles;
+        std::vector<int> last_dirty_source_triangles;
         for (TrianglePatch& p : m_triangle_patches)
         {
             Slic3r::EnforcerBlockerType neighbot_type = *p.neighbor_types.begin();
@@ -326,12 +329,13 @@ namespace spread
                     m_triangle_virtual_state[0].virtual_state[tri] = neighbot_type;
                     
 
-                    last_triangle_change_state.push_back(m_triangle_selector->get_source_triangle(tri));
+                    last_triangle_change_state.push_back(tri);
+                    last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(tri));
                 }
             }
         }
        
-        dirty_source_triangles_2_chunks(last_triangle_change_state, new_dirty_chunks);
+        dirty_source_triangles_2_chunks(last_dirty_source_triangles, new_dirty_chunks);
         before_chunks.clear();
         before_chunks.insert(before_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
         dirty_chunks.insert(dirty_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
