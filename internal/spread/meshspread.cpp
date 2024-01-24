@@ -309,6 +309,7 @@ namespace spread
         }
         if (m_triangle_patches.empty() || m_triangle_patches.size() == 1) return false;
 
+        bool is_gap = false;
         std::vector<int> new_dirty_chunks; 
         std::vector<int> last_dirty_source_triangles;
         for (TrianglePatch& p : m_triangle_patches)
@@ -324,6 +325,7 @@ namespace spread
             }
             else
             {
+                is_gap = true;
                 for (int tri : p.triangle_indices)
                 {                  
                     m_triangle_virtual_state[0].virtual_state[tri] = neighbot_type;
@@ -339,7 +341,7 @@ namespace spread
         before_chunks.clear();
         before_chunks.insert(before_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
         dirty_chunks.insert(dirty_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
-        return true;
+        return is_gap;
     }
    
 
