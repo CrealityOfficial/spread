@@ -111,7 +111,7 @@ namespace spread
         //计算patch面积
         float get_patch_area(const TrianglePatch& patch);
         //缝隙填充接口
-        void get_triangles_per_patch(float max_limit_area , std::vector<int>& dirty_chunks);
+        bool get_triangles_per_patch(float max_limit_area , std::vector<int>& dirty_chunks);
         //执行缝隙填充（无法回复）
         void apply_triangle_state(std::vector<int>& dirty_chunks);
 

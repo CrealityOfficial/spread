@@ -234,7 +234,7 @@ namespace spread
         return total_area;
     }
 
-    void MeshSpreadWrapper::get_triangles_per_patch( float max_limit_area, std::vector<int>& dirty_chunks)
+    bool MeshSpreadWrapper::get_triangles_per_patch( float max_limit_area, std::vector<int>& dirty_chunks)
     {
         dirty_chunks.clear();
         m_triangle_patches.clear();
@@ -307,7 +307,7 @@ namespace spread
             patch.patch_state = frist_state;
             m_triangle_patches.emplace_back(std::move(patch));
         }
-        if (m_triangle_patches.empty() || m_triangle_patches.size() == 1) return;
+        if (m_triangle_patches.empty() || m_triangle_patches.size() == 1) return false;
 
         std::vector<int> new_dirty_chunks; 
         std::vector<int> last_dirty_source_triangles;
@@ -339,6 +339,7 @@ namespace spread
         before_chunks.clear();
         before_chunks.insert(before_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
         dirty_chunks.insert(dirty_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
+        return true;
     }
    
 
