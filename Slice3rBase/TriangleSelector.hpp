@@ -420,7 +420,11 @@ protected:
     const TriangleMesh &m_mesh;
     std::vector<Vec3i> m_neighbors;
     const std::vector<Vec3f> m_face_normals;
-
+    // height 
+    std::vector<std::vector<int>> height_triangles;
+    float max_z;
+    float min_z;
+    float chunk_span;
     //aoob
     std::vector<int> m_dirty_source_triangles;
 

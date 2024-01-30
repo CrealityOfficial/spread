@@ -158,8 +158,11 @@ namespace spread
         clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
         clipping_plane.offset = offset;
 
-        std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::HeightRange::cursor_factory(center.z, source,
-            height, trafo_no_translate, clipping_plane);
+        
+            std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::SinglePointCursor::cursor_factory(center.z, source,
+                height, trafo_no_translate, clipping_plane);
+        /*std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::HeightRange::cursor_factory(center.z, source,
+            height, trafo_no_translate, clipping_plane);*/
 
         bool triangle_splitting_enabled = true;
 
@@ -382,6 +385,9 @@ namespace spread
         , bool isFill
         , bool isBorder)
     {
+        float angle = seed_fill_angle;
+        if (isFill && !isBorder)
+            angle = 180.f;
         Slic3r::TriangleSelector::CursorType _cursor_type = Slic3r::TriangleSelector::CursorType(Slic3r::TriangleSelector::CursorType::GAP_FILL); 
         //float seed_fill_angle = 30.0f;
         bool propagate = true;
@@ -389,7 +395,7 @@ namespace spread
 
         if (!isFill&&!isBorder)
         {
-            seed_fill_angle = -1.0f;
+            angle = -1.0f;
             propagate = false;
         }
 
@@ -400,39 +406,22 @@ namespace spread
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
-        {
-            if (!isBorder)
-            {
-                if (isFill)
-                {
-                    m_triangle_selector->seed_fill_select_triangles(
-                        Slic3r::Vec3f(center)
-                        , facet_start
-                        , trafo_no_translate
-                        , _clipping_plane
-                        , seed_fill_angle
-                        , m_highlight_by_angle_threshold_deg);
-                }
-                else
-                {
-                    m_triangle_selector->bucket_fill_select_triangles(
-                        Slic3r::Vec3f(center)
-                        , facet_start
-                        , _clipping_plane
-                        , seed_fill_angle
-                        , propagate);
-                }
-            }
-            else
-            {
-                m_triangle_selector->bucket_fill_select_triangles(
-                    Slic3r::Vec3f(center)
-                    , facet_start
-                    , _clipping_plane
-                    , seed_fill_angle
-                    , propagate);
-            }
-
+        {                                 
+            /* m_triangle_selector->seed_fill_select_triangles(
+                Slic3r::Vec3f(center)
+                , facet_start
+                , trafo_no_translate
+                , _clipping_plane
+                , angle
+                , m_highlight_by_angle_threshold_deg);*/
+                
+            m_triangle_selector->bucket_fill_select_triangles(
+                Slic3r::Vec3f(center)
+                , facet_start
+                , _clipping_plane
+                , angle
+                , propagate);
+                                         
             
             std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
             contour.reserve(contour_edges.size());

@@ -497,29 +497,86 @@ bool TriangleSelector::get_source_triangles(int facet)
 
 void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<std::vector<Vec3f>>& contour)
 {
-    int tri_size = m_dirty_source_triangles.size();
-    /*int idx = 0;
-    const float eps = 1e-4f;*/
-    for (const Triangle& tr : m_triangles) 
+    const int height_chunks = 20; 
+    if (height_triangles.empty())
     {
-        if (tr.is_split()||!tr.valid()) continue;
-       // if (idx >= tri_size) break;
+        max_z = std::numeric_limits<float>::min();
+        min_z = std::numeric_limits<float>::max();
+        for (const Vertex& tv : m_vertices)
+        {
+            if (tv.v(2) > max_z)
+                max_z = tv.v(2);
+            if (tv.v(2) < min_z)
+                min_z = tv.v(2);
+        }
+        chunk_span = (max_z - min_z) / height_chunks;
+
+        height_triangles.resize(height_chunks, std::vector<int>());
+        int idx = 0;
+        int tri_size = m_dirty_source_triangles.size();
+        for (const Triangle& tr : m_triangles)
+        {
+            if (idx >= tri_size) break;
+            float v0_z = m_vertices[tr.verts_idxs[0]].v(2);
+            float v1_z = m_vertices[tr.verts_idxs[1]].v(2);
+            float v2_z = m_vertices[tr.verts_idxs[2]].v(2);
+            float max_zz = std::max({ v0_z,v1_z ,v2_z })-min_z;
+            float min_zz = std::min({ v0_z,v1_z ,v2_z })-min_z;
+
+            int max_zi = (int)(max_zz / chunk_span);
+            int min_zi = (int)(min_zz / chunk_span);
+            if (max_zi == height_chunks)
+                max_zi--;
+            if (min_zi == height_chunks)
+                min_zi--;
+            for (int zi = min_zi; zi <= max_zi; zi++)
+                height_triangles[zi].push_back(idx);
+
+            idx++;
+        }
+    }
+
+
+    float zt = std::clamp(z_top, min_z, max_z);
+    float zb = std::clamp(z_bot, min_z, max_z);
+
+    int topi = (int)((zt - min_z)/ chunk_span);
+    int boti = (int)((zb - min_z) / chunk_span);
+    if (topi == height_chunks)
+        topi--;
+    if (boti == height_chunks)
+        boti--;
+
+    std::vector<int> container;
+    container.insert(container.end(), height_triangles[boti].begin(), height_triangles[boti].end());
+    container.insert(container.end(), height_triangles[topi].begin(), height_triangles[topi].end());
+
+    auto zf = [&](Vec3f v_0, Vec3f v_1, float z) ->Vec3f {
+        float c = v_1[2] - v_0[2];
+        float zc = z - v_0[2];
+        float t = (zc * 1.f) / (c * 1.f);
+        if (t < 0 || t>1) return Vec3f(0, 0, 0);
+        Vec3f dir = v_1 - v_0;
+        return v_0 + t * dir;
+    };
+
+    for (int fi:container) 
+    {
+        const Triangle& tr = m_triangles[fi];
+        if (tr.is_split()||!tr.valid()) continue;       
         Vec3f v0 = Vec3f(m_vertices[tr.verts_idxs[0]].v(0), m_vertices[tr.verts_idxs[0]].v(1), m_vertices[tr.verts_idxs[0]].v(2));
         Vec3f v1 = Vec3f(m_vertices[tr.verts_idxs[1]].v(0), m_vertices[tr.verts_idxs[1]].v(1), m_vertices[tr.verts_idxs[1]].v(2));
         Vec3f v2 = Vec3f(m_vertices[tr.verts_idxs[2]].v(0), m_vertices[tr.verts_idxs[2]].v(1), m_vertices[tr.verts_idxs[2]].v(2));
         float max_z = std::max({ v0[2],v1[2] ,v2[2] });
-        if (z_bot > max_z) continue;
+        if (z_bot > max_z)
+        {            
+            continue;
+        }
         float min_z = std::min({ v0[2],v1[2] ,v2[2] });
-        if (z_top < min_z) continue;
-     
-        auto zf = [&](Vec3f v_0, Vec3f v_1, float z) ->Vec3f{
-            float c = v_1[2] - v_0[2];
-            float zc = z - v_0[2];
-            float t = (zc * 1.f) / (c * 1.f);
-            if (t < 0 || t>1) return Vec3f(0,0,0);
-            Vec3f dir = v_1 - v_0;
-            return v_0 + t * dir;
-        };
+        if (z_top < min_z) 
+        {          
+            continue;
+        }
        
         std::vector<Vec3f> container_b;
         Vec3f z1(0,0,0), z2(0,0,0),z3(0,0,0);
@@ -552,7 +609,7 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
                 container_t.push_back(z3);
         }
         contour.push_back(container_t);
-        //idx++;
+        
     }
 
 }

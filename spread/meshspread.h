@@ -80,7 +80,7 @@ namespace spread
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour
             , const trimesh::vec& normal, const float offset   //for ClippingPlane
             , float seed_fill_angle = 30
-            , bool isFill=true
+            , bool isFill=false
             , bool isBorder=false);
         void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
         //清除选中状态
