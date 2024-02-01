@@ -86,6 +86,10 @@ namespace spread
         //清除选中状态
         void seed_fill_unselect_all_triangles();
 
+        //所有三角面颜色转换
+        void change_state_all_triangles(int ori_state,int des_state, std::vector<int>& dirty_chunks);
+
+
         //获取序列化数据
         void updateData();
         //解序列化数据

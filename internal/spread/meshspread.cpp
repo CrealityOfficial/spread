@@ -364,6 +364,24 @@ namespace spread
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
     }
 
+    void MeshSpreadWrapper::change_state_all_triangles(int ori_state, int des_state, std::vector<int>& dirty_chunks)
+    {
+        std::vector<int> last_dirty_source_triangles;
+        for(int index=0;index< m_triangle_selector->get_triangles_size();index++)
+        {
+            if (!m_triangle_selector->get_triangle_isvalid(index) || m_triangle_selector->get_triangle_issplit(index))
+                continue;
+           // std::cout << "index: " << index << " " << (int)m_triangle_selector->get_triangle_state(index) << "\n";
+            if ((int)m_triangle_selector->get_triangle_state(index) == ori_state)
+            {
+                Slic3r::EnforcerBlockerType state = Slic3r::EnforcerBlockerType(des_state);
+                m_triangle_selector->set_triangle_state(index, state);
+                last_dirty_source_triangles.push_back(m_triangle_selector->get_source_triangle(index));
+            }
+            dirty_source_triangles_2_chunks(last_dirty_source_triangles, dirty_chunks);
+        }
+    }
+
     void MeshSpreadWrapper::get_height_contour(const trimesh::vec& center, float height, std::vector<std::vector<trimesh::vec3>>& contour)
     {
         std::vector<std::vector<Slic3r::Vec3f>> contou;
