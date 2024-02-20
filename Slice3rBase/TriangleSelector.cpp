@@ -563,7 +563,7 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
     for (int fi:container) 
     {
         const Triangle& tr = m_triangles[fi];
-        if (tr.is_split()||!tr.valid()) continue;       
+        if (/*tr.is_split()||*/!tr.valid()) continue;       
         Vec3f v0 = Vec3f(m_vertices[tr.verts_idxs[0]].v(0), m_vertices[tr.verts_idxs[0]].v(1), m_vertices[tr.verts_idxs[0]].v(2));
         Vec3f v1 = Vec3f(m_vertices[tr.verts_idxs[1]].v(0), m_vertices[tr.verts_idxs[1]].v(1), m_vertices[tr.verts_idxs[1]].v(2));
         Vec3f v2 = Vec3f(m_vertices[tr.verts_idxs[2]].v(0), m_vertices[tr.verts_idxs[2]].v(1), m_vertices[tr.verts_idxs[2]].v(2));
