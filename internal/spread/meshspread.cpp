@@ -344,6 +344,8 @@ namespace spread
         before_chunks.clear();
         before_chunks.insert(before_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
         dirty_chunks.insert(dirty_chunks.end(), new_dirty_chunks.begin(), new_dirty_chunks.end());
+        std::sort(dirty_chunks.begin(), dirty_chunks.end());
+        dirty_chunks.erase(std::unique(dirty_chunks.begin(), dirty_chunks.end()), dirty_chunks.end());
         return is_gap;
     }
    
