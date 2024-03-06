@@ -290,18 +290,29 @@ namespace spread
 
                     std::vector<int> touching_triangles = m_triangle_selector->get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
 
+                    std::vector<int> all_state(32,0);
                     for (const int tr_idx : touching_triangles) {
                         if (tr_idx < 0)
                             continue;
                         if (m_triangle_selector->get_triangle_state(tr_idx) != frist_state)
                         {
-                            patch.neighbor_types.insert(m_triangle_selector->get_triangle_state(tr_idx));
+                            //patch.neighbor_types.insert(m_triangle_selector->get_triangle_state(tr_idx));
+                            int triangle_state = (int)m_triangle_selector->get_triangle_state(tr_idx);
+                            all_state[triangle_state]++;
                             continue;
                         }
                         if (visited[tr_idx])
                             continue;
                         facet_queue.push(tr_idx);
                     }
+                    int maxi = 0;
+                    for (int ali = 1; ali < all_state.size(); ali++)
+                    {
+                        if (all_state[ali] > all_state[maxi])
+                            maxi = ali;
+                    }
+                    Slic3r::EnforcerBlockerType add_state = Slic3r::EnforcerBlockerType(maxi);
+                    patch.neighbor_types.insert(add_state);
                 }
                 visited[current_facet] = true;
             }
