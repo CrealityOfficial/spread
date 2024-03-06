@@ -414,7 +414,8 @@ namespace spread
         , const trimesh::vec& normal, const float offset
         , float seed_fill_angle
         , bool isFill
-        , bool isBorder)
+        , bool isBorder
+        , bool isSupport)
     {
         float angle = seed_fill_angle;
         if (isFill && !isBorder)
@@ -437,23 +438,27 @@ namespace spread
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
-        {                                 
-            /* m_triangle_selector->seed_fill_select_triangles(
-                Slic3r::Vec3f(center)
-                , facet_start
-                , trafo_no_translate
-                , _clipping_plane
-                , angle
-                , m_highlight_by_angle_threshold_deg);*/
-                
-            m_triangle_selector->bucket_fill_select_triangles(
-                Slic3r::Vec3f(center)
-                , facet_start
-                , _clipping_plane
-                , angle
-                , propagate);
-                                         
-            
+        {        
+            if(isSupport)
+            {
+                m_triangle_selector->seed_fill_select_triangles(
+                    Slic3r::Vec3f(center)
+                    , facet_start
+                    , trafo_no_translate
+                    , _clipping_plane
+                    , angle
+                    , m_highlight_by_angle_threshold_deg);
+            }
+            else
+            {
+                m_triangle_selector->bucket_fill_select_triangles(
+               Slic3r::Vec3f(center)
+               , facet_start
+               , _clipping_plane
+               , angle
+               , propagate);
+            }
+                                                                              
             std::vector<Slic3r::Vec2i> contour_edges = m_triangle_selector->get_seed_fill_contour();
             contour.reserve(contour_edges.size());
             for (const Slic3r::Vec2i& edge : contour_edges) {

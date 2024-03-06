@@ -77,11 +77,13 @@ namespace spread
 
         //填充、选面、边沿填充
         //增加了一个是否为边沿检测的参数，true为启动边沿检测
+        // 第三个bool参数专为支撑
         void bucket_fill_select_triangles_preview(const trimesh::vec& center, int facet_start, int colorIndex, std::vector<std::vector<trimesh::vec3>>& contour
             , const trimesh::vec& normal, const float offset   //for ClippingPlane
             , float seed_fill_angle = 30
             , bool isFill=false
-            , bool isBorder=false);
+            , bool isBorder=false
+            , bool isSupport=false);
         void bucket_fill_select_triangles(int colorIndex, std::vector<int>& dirty_chunks);
         //清除选中状态
         void seed_fill_unselect_all_triangles();
