@@ -18,7 +18,7 @@ namespace spread
 
         Slic3r::EnforcerBlockerType patch_state = Slic3r::EnforcerBlockerType::NONE;
         std::set< Slic3r::EnforcerBlockerType> neighbor_types;
-
+        std::vector<int> neighbor_state_number;
         float area = 0.f;
     };
 
@@ -265,6 +265,7 @@ namespace spread
 
             Slic3r::EnforcerBlockerType frist_state = m_triangle_selector->get_triangle_state(start_face_idx);
             TrianglePatch patch;
+            patch.neighbor_state_number.resize(32, 0);
             std::queue<int> facet_queue;
             facet_queue.push(start_face_idx);
             
@@ -289,30 +290,23 @@ namespace spread
                     patch.triangle_indices.push_back(current_facet);
 
                     std::vector<int> touching_triangles = m_triangle_selector->get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
-
-                    std::vector<int> all_state(32,0);
+                  
                     for (const int tr_idx : touching_triangles) {
                         if (tr_idx < 0)
                             continue;
                         if (m_triangle_selector->get_triangle_state(tr_idx) != frist_state)
                         {
-                            //patch.neighbor_types.insert(m_triangle_selector->get_triangle_state(tr_idx));
-                            int triangle_state = (int)m_triangle_selector->get_triangle_state(tr_idx);
-                            all_state[triangle_state]++;
+                            patch.neighbor_types.insert(m_triangle_selector->get_triangle_state(tr_idx));
+                            Slic3r::EnforcerBlockerType triangle_state = m_triangle_selector->get_triangle_state(tr_idx);
+                            int state_int = (int)triangle_state;
+                            patch.neighbor_state_number[state_int]++;
                             continue;
                         }
                         if (visited[tr_idx])
                             continue;
                         facet_queue.push(tr_idx);
                     }
-                    int maxi = 0;
-                    for (int ali = 1; ali < all_state.size(); ali++)
-                    {
-                        if (all_state[ali] > all_state[maxi])
-                            maxi = ali;
-                    }
-                    Slic3r::EnforcerBlockerType add_state = Slic3r::EnforcerBlockerType(maxi);
-                    patch.neighbor_types.insert(add_state);
+                    
                 }
                 visited[current_facet] = true;
             }
@@ -328,7 +322,16 @@ namespace spread
         std::vector<int> last_dirty_source_triangles;
         for (TrianglePatch& p : m_triangle_patches)
         {
-            Slic3r::EnforcerBlockerType neighbot_type = *p.neighbor_types.begin();
+            //Slic3r::EnforcerBlockerType neighbot_type = *p.neighbor_types.begin();
+
+            int max_state = 0;
+            for (int sti = 0; sti < p.neighbor_state_number.size(); sti++)
+            {
+                if (p.neighbor_state_number[max_state] < p.neighbor_state_number[sti])
+                    max_state = sti;
+            }
+            Slic3r::EnforcerBlockerType neighbot_type = Slic3r::EnforcerBlockerType(max_state);
+
             Slic3r::EnforcerBlockerType type = p.patch_state;;
             if (p.area > max_limit_area)
             {
