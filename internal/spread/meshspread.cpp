@@ -290,7 +290,7 @@ namespace spread
                     patch.triangle_indices.push_back(current_facet);
 
                     std::vector<int> touching_triangles = m_triangle_selector->get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
-                  
+
                     for (const int tr_idx : touching_triangles) {
                         if (tr_idx < 0)
                             continue;
@@ -306,7 +306,6 @@ namespace spread
                             continue;
                         facet_queue.push(tr_idx);
                     }
-                    
                 }
                 visited[current_facet] = true;
             }
@@ -322,8 +321,6 @@ namespace spread
         std::vector<int> last_dirty_source_triangles;
         for (TrianglePatch& p : m_triangle_patches)
         {
-            //Slic3r::EnforcerBlockerType neighbot_type = *p.neighbor_types.begin();
-
             int max_state = 0;
             for (int sti = 0; sti < p.neighbor_state_number.size(); sti++)
             {
@@ -331,7 +328,6 @@ namespace spread
                     max_state = sti;
             }
             Slic3r::EnforcerBlockerType neighbot_type = Slic3r::EnforcerBlockerType(max_state);
-
             Slic3r::EnforcerBlockerType type = p.patch_state;;
             if (p.area > max_limit_area)
             {
