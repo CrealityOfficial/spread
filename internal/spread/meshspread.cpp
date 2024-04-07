@@ -627,6 +627,37 @@ namespace spread
         return hit.face();
     }
 
+    void MeshSpreadWrapper::getFacet_Group(const trimesh::vec& point, trimesh::vec& direction, trimesh::vec& cross, int& mesh_index, int& face_index)
+    {
+        Slic3r::Vec3d _point(point.x, point.y, point.z);
+        Slic3r::Vec3d _direction(direction.x, direction.y, direction.z);
+        Slic3r::sla::IndexedMesh::hit_result hit = m_emesh->query_ray_hit(_point, _direction);
+
+        if (hit.is_hit())
+        {
+            cross = trimesh::vec(hit.position().x(), hit.position().y(), hit.position().z());
+        }
+
+        int hit_face = hit.face();
+        int facets_count = m_mesh->its.indices.size();
+        for (int i = 0; i < group_faces_size.size(); i++)
+        {
+            if (i!= group_faces_size.size()-1 &&hit_face >= group_faces_size[i] && hit_face < group_faces_size[i + 1])
+            {
+                mesh_index = i;
+                face_index = hit_face - group_faces_size[i];
+                break;
+            }
+            else if (i == group_faces_size.size() - 1 && hit_face >= group_faces_size[i] && hit_face < facets_count)
+            {
+                mesh_index = i;
+                face_index = hit_face - group_faces_size[i];
+                break;
+            }
+        }
+    }
+
+
     std::vector<std::string> MeshSpreadWrapper::get_data_as_string() const
     {
         std::vector<std::string> data;

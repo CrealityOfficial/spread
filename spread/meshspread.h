@@ -105,6 +105,8 @@ namespace spread
 
         //获取碰撞点
         int getFacet(const trimesh::vec& point, trimesh::vec& direction, trimesh::vec& cross);
+        // group  后两个int第一个返回mesh索引 第二个返回face索引
+        void getFacet_Group(const trimesh::vec& point, trimesh::vec& direction, trimesh::vec& cross, int& mesh_index, int& face_index);
 
         //序列化数据存取
         std::string get_triangle_as_string(int triangle_idx) const;
