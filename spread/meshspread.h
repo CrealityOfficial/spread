@@ -128,6 +128,8 @@ namespace spread
         //执行缝隙填充（无法回复）
         void apply_triangle_state(std::vector<int>& dirty_chunks);
 
+        bool judge_hit(const trimesh::vec& point, trimesh::vec& direction);
+
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);

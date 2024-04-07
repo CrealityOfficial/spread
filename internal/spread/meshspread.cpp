@@ -657,6 +657,14 @@ namespace spread
         }
     }
 
+    bool MeshSpreadWrapper::judge_hit(const trimesh::vec& point, trimesh::vec& direction)
+    {
+        Slic3r::Vec3d _point(point.x, point.y, point.z);
+        Slic3r::Vec3d _direction(direction.x, direction.y, direction.z);
+        Slic3r::sla::IndexedMesh::hit_result hit = m_emesh->query_ray_hit(_point, _direction);
+        return hit.is_hit();
+    }
+
 
     std::vector<std::string> MeshSpreadWrapper::get_data_as_string() const
     {
