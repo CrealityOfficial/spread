@@ -4,6 +4,7 @@
 #include "Slice3rBase/TriangleSelector.hpp"
 #include "Slice3rBase/SLA/IndexedMesh.hpp"
 #include "msbase/mesh/chunk.h"
+#include "msbase/mesh/merge.h"
 
 #define MAX_RADIUS 8
 #define  PI 3.141592 
@@ -70,6 +71,22 @@ namespace spread
 
         return;
     }
+
+    void MeshSpreadWrapper::setGroupInputs(std::vector<trimesh::TriMesh*>m_groupmesh, ccglobal::Tracer* tracer)
+    {
+        if (m_groupmesh.empty())
+            return;
+        group_faces_size.clear();
+        int begin = 0;
+        for (const auto mesh : m_groupmesh)
+        {
+            group_faces_size.push_back(begin);
+            begin += mesh->faces.size();
+        }
+        trimesh::TriMesh* group_mesh = msbase::mergeMeshes(m_groupmesh);
+        setInputs(group_mesh, tracer);
+    }
+
 
     void MeshSpreadWrapper::testChunk()
     {
@@ -328,7 +345,7 @@ namespace spread
                     max_state = sti;
             }
             Slic3r::EnforcerBlockerType neighbot_type = Slic3r::EnforcerBlockerType(max_state);
-            Slic3r::EnforcerBlockerType type = p.patch_state;;
+            Slic3r::EnforcerBlockerType type = p.patch_state;
             if (p.area > max_limit_area)
             {
                 for (int tri : p.triangle_indices)
@@ -626,6 +643,30 @@ namespace spread
         return data;
     }
 
+    std::vector<std::vector<std::string>> MeshSpreadWrapper::get_date_as_groupstring() const
+    {
+        std::vector<std::vector<std::string>> group_date;
+        group_date.resize(group_faces_size.size());
+
+        int facets_count = m_mesh->its.indices.size();
+        for (int i = 0 ,j = 0; i < facets_count; ++i)
+        {
+            if (j<group_faces_size.size()&&i == group_faces_size[j])
+            {
+                group_date.push_back(std::vector<std::string>());
+                j++;
+            }
+
+            std::string face_data = get_triangle_as_string(i);
+            if (face_data.empty())
+                face_data = "";
+            group_date.back().push_back(face_data);
+        }
+
+        return group_date;
+    }
+
+
     void MeshSpreadWrapper::set_triangle_from_data(std::vector<std::string> strList)
     {
         m_data.first.clear();
@@ -643,5 +684,39 @@ namespace spread
         }
 
         updateTriangle();
+    }
+
+
+    void MeshSpreadWrapper::set_triangle_from_data_group(std::vector<std::vector<std::string>> strList_group)
+    {
+        m_data.first.clear();
+        m_data.second.clear();
+        int facets_count = m_mesh->its.indices.size();
+        for (int i = 0; i < strList_group.size(); i++)
+        {
+            if (strList_group[i].empty())
+            {
+                if(i< group_faces_size.size()-1)
+                    strList_group[i] = std::vector<std::string>(group_faces_size[i+1]-group_faces_size[i]);
+                else if(i== group_faces_size.size() -1 )
+                    strList_group[i] = std::vector<std::string>(facets_count - group_faces_size[i]);
+            }
+        }
+        std::vector<std::string> str_contianer;
+        for (int i = 0; i < strList_group.size(); i++)
+        {
+            for (int j = 0; j < strList_group[i].size(); j++)
+                str_contianer.push_back(strList_group[i][j]);
+        }
+        assert(str_contianer.size() == facets_count);
+        for (int i = 0; i < facets_count; ++i)
+        {
+            const std::string& str = str_contianer[i];
+            if (!str.empty())
+                set_triangle_from_string(i, str);
+        }
+
+        updateTriangle();
+
     }
 }

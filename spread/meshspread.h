@@ -50,6 +50,9 @@ namespace spread
 
         //初始化数据
         void setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer = nullptr);
+        //group接口
+        void setGroupInputs(std::vector<trimesh::TriMesh*>m_groupmesh,ccglobal::Tracer* tracer=nullptr);
+
 
         //分块数据
         void testChunk();
@@ -107,8 +110,10 @@ namespace spread
         std::string get_triangle_as_string(int triangle_idx) const;
         void set_triangle_from_string(int triangle_id, const std::string& str);
         std::vector<std::string> get_data_as_string() const;
+        std::vector<std::vector<std::string>> get_date_as_groupstring() const;
         void set_triangle_from_data(std::vector<std::string> strList);
-        
+        //group
+        void set_triangle_from_data_group(std::vector<std::vector<std::string>> strList_group);
         //获取原始面ID
         int source_triangle_index(int index);
         //块数据转faceID
@@ -138,6 +143,8 @@ namespace spread
 
         std::vector<int> m_faceChunkIDs;
         std::vector<std::vector<int>> m_chunkFaces;
+     
+        std::vector<int> group_faces_size;
     };
 
 }
