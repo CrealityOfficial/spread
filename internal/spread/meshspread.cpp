@@ -37,10 +37,19 @@ namespace spread
 
     MeshSpreadWrapper::~MeshSpreadWrapper()
     {
+        clearBuffer();
+    }
+
+
+    void MeshSpreadWrapper::clearBuffer()
+    {
         m_chunkFaces.clear();
         m_faceChunkIDs.clear();
         m_data.first.clear();
         m_data.second.clear();
+        m_mesh->clear();
+        m_mesh.release();
+        m_emesh.release();       
     }
 
     void MeshSpreadWrapper::setInputs(trimesh::TriMesh* mesh, ccglobal::Tracer* tracer)
