@@ -552,10 +552,13 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
     container.insert(container.end(), height_triangles[topi].begin(), height_triangles[topi].end());
 
     auto zf = [&](Vec3f v_0, Vec3f v_1, float z) ->Vec3f {
-        float c = v_1[2] - v_0[2];
+        float c = v_1[2] - v_0[2];       
+        if (std::abs(c) < 1e-5) return Vec3f(0, 0, 0);
         float zc = z - v_0[2];
         float t = (zc * 1.f) / (c * 1.f);
         if (t < 0 || t>1) return Vec3f(0, 0, 0);
+        if (t == 0) return v_0;
+        if (t == 1) return v_1;
         Vec3f dir = v_1 - v_0;
         return v_0 + t * dir;
     };
@@ -580,19 +583,20 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
        
         std::vector<Vec3f> container_b;
         Vec3f z1(0,0,0), z2(0,0,0),z3(0,0,0);
-        z1 = zf(v0, v1, z_bot);
+        z1 = zf(v0, v1, z_bot);       
         if (z1 != Vec3f(0, 0, 0))
             container_b.push_back(z1);
-        z2 = zf(v1, v2, z_bot);
+        z2 = zf(v1, v2, z_bot);       
         if (z2 != Vec3f(0, 0, 0))
             container_b.push_back(z2);
         if (container_b.size() != 2)
         {
-            z3 = zf(v2, v0, z_bot);
+            z3 = zf(v2, v0, z_bot);           
             if (z3 != Vec3f(0, 0, 0))
                 container_b.push_back(z3);
         }
-        contour.push_back(container_b);
+        if(container_b.size()==2)
+            contour.push_back(container_b);
 
         std::vector<Vec3f> container_t;
         z1= Vec3f(0, 0, 0), z2= Vec3f(0, 0, 0), z3= Vec3f(0, 0, 0);
@@ -608,7 +612,8 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
             if (z3 != Vec3f(0, 0, 0))
                 container_t.push_back(z3);
         }
-        contour.push_back(container_t);
+        if (container_t.size() == 2)
+            contour.push_back(container_t);
         
     }
 
