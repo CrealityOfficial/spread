@@ -47,8 +47,15 @@ namespace spread
         m_faceChunkIDs.clear();
         m_data.first.clear();
         m_data.second.clear();
+        m_triangle_patches.clear();
+        m_triangle_virtual_state.clear();
+        m_triangle_selector->reset();
+        last_triangle_change_state.clear();
+        before_chunks.clear();
         m_mesh->clear();
+        m_mesh.reset();
         m_mesh.release();
+        m_emesh.reset();
         m_emesh.release();       
     }
 
