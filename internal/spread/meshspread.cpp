@@ -49,7 +49,8 @@ namespace spread
         m_data.second.clear();
         m_triangle_patches.clear();
         m_triangle_virtual_state.clear();
-        m_triangle_selector->reset();
+        //m_triangle_selector->reset();
+        m_triangle_selector.reset();
         last_triangle_change_state.clear();
         before_chunks.clear();
         m_mesh->clear();
@@ -514,7 +515,10 @@ namespace spread
 
     void MeshSpreadWrapper::seed_fill_unselect_all_triangles()
     {
-        m_triangle_selector->seed_fill_unselect_all_triangles();
+        if (m_triangle_selector)
+        {
+            m_triangle_selector->seed_fill_unselect_all_triangles();
+        }
     }
 
     void MeshSpreadWrapper::get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset)
