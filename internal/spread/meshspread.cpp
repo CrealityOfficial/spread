@@ -190,11 +190,11 @@ namespace spread
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
         Slic3r::TriangleSelector::ClippingPlane clipping_plane;
         clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        clipping_plane.offset = offset;
+        clipping_plane.offset = offset;     
+        //height
+        std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::SinglePointCursor::cursor_factory(center.z, source,
+            height, trafo_no_translate, clipping_plane);     
 
-        
-            std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::SinglePointCursor::cursor_factory(center.z, source,
-                height, trafo_no_translate, clipping_plane);
         /*std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::HeightRange::cursor_factory(center.z, source,
             height, trafo_no_translate, clipping_plane);*/
 
@@ -207,6 +207,32 @@ namespace spread
         std::vector<int> dirty_source_triangles;
         m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
         dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+    }
+
+
+    void MeshSpreadWrapper::sphere_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex
+        , const trimesh::vec& normal, const float offset
+        , std::vector<int>& dirty_chunks)
+    {
+        Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
+        Slic3r::Vec3f inter_center(center.x, center.y, center.z);
+        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
+        clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
+        clipping_plane.offset = offset;
+
+        std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::SinglePointCursor::cursor_factory(inter_center, source,
+            radius, Slic3r::TriangleSelector::CursorType::SPHERE, trafo_no_translate, clipping_plane);
+        bool triangle_splitting_enabled = true;
+
+        Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
+        m_triangle_selector->select_patch(facet_start, std::move(cursor), new_state, trafo_no_translate,
+            triangle_splitting_enabled, m_highlight_by_angle_threshold_deg);
+
+        std::vector<int> dirty_source_triangles;
+        m_triangle_selector->clear_dirty_source_triangles(dirty_source_triangles);
+        dirty_source_triangles_2_chunks(dirty_source_triangles, dirty_chunks);
+
     }
 
     void MeshSpreadWrapper::double_circile_factory(const trimesh::vec& center, const trimesh::vec& second_center, const trimesh::vec3& camera_pos,float radius, int facet_start, int colorIndex

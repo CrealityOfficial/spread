@@ -75,6 +75,10 @@ namespace spread
         void height_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float height, int facet_start, int colorIndex
             , const trimesh::vec& normal, const float offset
             , std::vector<int>& dirty_chunks);
+        //球形涂抹
+        void sphere_factory(const trimesh::vec& center, const trimesh::vec3& camera_pos, float radius, int facet_start, int colorIndex
+            , const trimesh::vec& normal, const float offset
+            , std::vector<int>& dirty_chunks);
         //得到高度轮廓点
         void get_height_contour(const trimesh::vec& center, float height,std::vector<std::vector<trimesh::vec3>>& contour);
 
