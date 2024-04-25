@@ -339,6 +339,8 @@ public:
 
     void clear_dirty_source_triangles(std::vector<int>& triangles);
     void dirty_triangle(Triangle* tri);
+
+    bool judge_select_triangles();
 protected:
    
     // Triangle and info about how it's split.
@@ -444,7 +446,7 @@ protected:
     std::unique_ptr<Cursor> m_cursor;
     // Zero indicates an uninitialized state.
     float m_old_cursor_radius_sqr = 0;
-
+ 
     // Private functions:
 private:
     bool select_triangle(int facet_idx, EnforcerBlockerType type, bool triangle_splitting);

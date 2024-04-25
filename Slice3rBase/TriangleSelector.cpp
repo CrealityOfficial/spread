@@ -690,12 +690,12 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
                 touching_triangles.emplace_back(neighbor_idx);
 
         return touching_triangles;
-    };
-
+    };  
+ 
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
     std::queue<int>    facet_queue;
-
+    start_facet_idx = 1;
     facet_queue.push(start_facet_idx);
     while (!facet_queue.empty()) {
         int current_facet = facet_queue.front();
@@ -2078,14 +2078,24 @@ bool TriangleSelector::has_facets(const std::pair<std::vector<std::pair<int, int
 }
 
 void TriangleSelector::seed_fill_unselect_all_triangles()
-{
+{    
     for (Triangle &triangle : m_triangles)
         if (!triangle.is_split())
-            triangle.unselect_by_seed_fill();
+            triangle.unselect_by_seed_fill();    
+}
+
+bool TriangleSelector::judge_select_triangles()
+{
+    for (Triangle& triangle : m_triangles)
+        if (!triangle.is_split() && triangle.is_selected_by_seed_fill())
+        {
+            return true;
+        }
+    return false;
 }
 
 void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_state)
-{
+{   
     for (Triangle &triangle : m_triangles)
         if (!triangle.is_split() && triangle.is_selected_by_seed_fill())
         {

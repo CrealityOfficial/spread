@@ -136,6 +136,8 @@ namespace spread
 
         void clearBuffer();
 
+        bool judge_select_triangles();
+
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
