@@ -695,7 +695,7 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
     std::queue<int>    facet_queue;
-    start_facet_idx = 1;
+    
     facet_queue.push(start_facet_idx);
     while (!facet_queue.empty()) {
         int current_facet = facet_queue.front();
