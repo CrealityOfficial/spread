@@ -83,7 +83,7 @@ namespace spread
             , const trimesh::vec& normal, const float offset   
             , std::vector<int>& dirty_chunks);
         //得到高度轮廓点
-        void get_height_contour(const trimesh::vec& center, float height,std::vector<std::vector<trimesh::vec3>>& contour);
+        void get_height_contour(const trimesh::vec& worldSpaceCenter, float height,std::vector<std::vector<trimesh::vec3>>& contour);
 
         //填充、选面、边沿填充
         //增加了一个是否为边沿检测的参数，true为启动边沿检测
@@ -141,6 +141,9 @@ namespace spread
 
         bool judge_select_triangles();
 
+        void setMeshGlobalMatrix(const trimesh::xform& globalXf);
+        trimesh::xform getMeshGlobalMatrix();
+
     private:
         void get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset = trimesh::vec3());
         void dirty_source_triangles_2_chunks(const std::vector<int>& dirty_source_triangls, std::vector<int>& chunks);
@@ -160,6 +163,8 @@ namespace spread
         std::vector<std::vector<int>> m_chunkFaces;
      
         std::vector<int> group_faces_size;
+
+        trimesh::xform m_meshGlobalMatrix;
     };
 
 }

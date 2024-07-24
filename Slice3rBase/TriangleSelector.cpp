@@ -495,14 +495,21 @@ bool TriangleSelector::get_source_triangles(int facet)
     return m_dirty_source_triangles[facet];
 }
 
-void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<std::vector<Vec3f>>& contour)
+void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<std::vector<Vec3f>>& contour, const Slic3r::Transform3f& globalXf)
 {
+    std::vector<Vertex> g_vertices;
+    for (const Vertex& tv : m_vertices)
+    {
+        g_vertices.emplace_back(globalXf * tv.v);
+    }
+
+
     const int height_chunks = 20; 
     if (height_triangles.empty())
     {
         max_z = std::numeric_limits<float>::min();
         min_z = std::numeric_limits<float>::max();
-        for (const Vertex& tv : m_vertices)
+        for (const Vertex& tv : g_vertices)
         {
             if (tv.v(2) > max_z)
                 max_z = tv.v(2);
@@ -517,9 +524,9 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
         for (const Triangle& tr : m_triangles)
         {
             if (idx >= tri_size) break;
-            float v0_z = m_vertices[tr.verts_idxs[0]].v(2);
-            float v1_z = m_vertices[tr.verts_idxs[1]].v(2);
-            float v2_z = m_vertices[tr.verts_idxs[2]].v(2);
+            float v0_z = g_vertices[tr.verts_idxs[0]].v(2);
+            float v1_z = g_vertices[tr.verts_idxs[1]].v(2);
+            float v2_z = g_vertices[tr.verts_idxs[2]].v(2);
             float max_zz = std::max({ v0_z,v1_z ,v2_z })-min_z;
             float min_zz = std::min({ v0_z,v1_z ,v2_z })-min_z;
 
@@ -567,9 +574,9 @@ void TriangleSelector::get_height_lines(float z_bot, float z_top, std::vector<st
     {
         const Triangle& tr = m_triangles[fi];
         if (/*tr.is_split()||*/!tr.valid()) continue;       
-        Vec3f v0 = Vec3f(m_vertices[tr.verts_idxs[0]].v(0), m_vertices[tr.verts_idxs[0]].v(1), m_vertices[tr.verts_idxs[0]].v(2));
-        Vec3f v1 = Vec3f(m_vertices[tr.verts_idxs[1]].v(0), m_vertices[tr.verts_idxs[1]].v(1), m_vertices[tr.verts_idxs[1]].v(2));
-        Vec3f v2 = Vec3f(m_vertices[tr.verts_idxs[2]].v(0), m_vertices[tr.verts_idxs[2]].v(1), m_vertices[tr.verts_idxs[2]].v(2));
+        Vec3f v0 = Vec3f(g_vertices[tr.verts_idxs[0]].v(0), g_vertices[tr.verts_idxs[0]].v(1), g_vertices[tr.verts_idxs[0]].v(2));
+        Vec3f v1 = Vec3f(g_vertices[tr.verts_idxs[1]].v(0), g_vertices[tr.verts_idxs[1]].v(1), g_vertices[tr.verts_idxs[1]].v(2));
+        Vec3f v2 = Vec3f(g_vertices[tr.verts_idxs[2]].v(0), g_vertices[tr.verts_idxs[2]].v(1), g_vertices[tr.verts_idxs[2]].v(2));
         float max_z = std::max({ v0[2],v1[2] ,v2[2] });
         if (z_bot > max_z)
         {            
