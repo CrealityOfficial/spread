@@ -11,6 +11,35 @@
 
 namespace spread
 {
+    Slic3r::Transform3d trixform_2_slice3rform(const trimesh::xform& trimeshMat)
+    {
+		Slic3r::Transform3d slice3r_matrix = Slic3r::Transform3d::Identity();
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+                slice3r_matrix(i, j) = trimeshMat[i + j * 4];
+			}
+		}
+
+        return slice3r_matrix;
+    }
+
+    Slic3r::TriangleSelector::ClippingPlane get_clipping_plane_in_mesh_coordinates(const Slic3r::Transform3d& trafo_matrix, const trimesh::vec& normal, float offset)
+    {
+        Slic3r::Vec3d  clp_normal = Slic3r::Vec3d(normal.x, normal.y, normal.z);
+        double clp_offset = offset;
+
+        Slic3r::Transform3d trafo_normal = Slic3r::Transform3d(trafo_matrix.linear().transpose());
+        Slic3r::Transform3d trafo_inv = trafo_matrix.inverse();
+
+        Slic3r::Vec3d point_on_plane = clp_normal * clp_offset;
+        Slic3r::Vec3d point_on_plane_transformed = trafo_inv * point_on_plane;
+        Slic3r::Vec3d normal_transformed = trafo_normal * clp_normal;
+        float offset_transformed = float(point_on_plane_transformed.dot(normal_transformed));
+
+        return Slic3r::TriangleSelector::ClippingPlane({ float(normal_transformed.x()), float(normal_transformed.y()), float(normal_transformed.z()), offset_transformed });
+    }
 
     class TrianglePatch{
     public:
@@ -160,13 +189,14 @@ namespace spread
         Slic3r::Vec3f cursor_center(center.x, center.y, center.z);
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         float radius_world = radius;
+
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
-        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
-        clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        clipping_plane.offset = offset;
+        Slic3r::Transform3d trafo_matrix = trixform_2_slice3rform(m_meshGlobalMatrix);
+
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane = get_clipping_plane_in_mesh_coordinates(trafo_matrix, normal, offset);
 
         std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::Circle::cursor_factory(cursor_center,
-            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo_no_translate, clipping_plane);
+            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo_matrix, clipping_plane);
      
         bool triangle_splitting_enabled = true;
 
@@ -188,12 +218,14 @@ namespace spread
     {     
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
-        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
-        clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        clipping_plane.offset = offset;     
+
+        Slic3r::Transform3d trafo_matrix = trixform_2_slice3rform(m_meshGlobalMatrix);
+
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane = get_clipping_plane_in_mesh_coordinates(trafo_matrix, normal, offset);
+
         //height
         std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::SinglePointCursor::cursor_factory(center.z, source,
-            height, trafo_no_translate, clipping_plane);     
+            height, trafo_matrix, clipping_plane);
 
         /*std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::HeightRange::cursor_factory(center.z, source,
             height, trafo_no_translate, clipping_plane);*/
@@ -217,12 +249,13 @@ namespace spread
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         Slic3r::Vec3f inter_center(center.x, center.y, center.z);
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
-        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
-        clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        clipping_plane.offset = offset;
+
+        Slic3r::Transform3d trafo_matrix = trixform_2_slice3rform(m_meshGlobalMatrix);
+
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane = get_clipping_plane_in_mesh_coordinates(trafo_matrix, normal, offset);
 
         std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::SinglePointCursor::cursor_factory(inter_center, source,
-            radius, Slic3r::TriangleSelector::CursorType::SPHERE, trafo_no_translate, clipping_plane);
+            radius, Slic3r::TriangleSelector::CursorType::SPHERE, trafo_matrix, clipping_plane);
         bool triangle_splitting_enabled = true;
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
@@ -242,13 +275,13 @@ namespace spread
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         Slic3r::Vec3f inter_center(center.x, center.y, center.z);
         Slic3r::Vec3f second_cursor_center(second_center.x, second_center.y, second_center.z);
-        Slic3r::Transform3d trafo = Slic3r::Transform3d::Identity();
-        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
-        clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        clipping_plane.offset = offset;
+
+        Slic3r::Transform3d trafo_matrix = trixform_2_slice3rform(m_meshGlobalMatrix);
+
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane = get_clipping_plane_in_mesh_coordinates(trafo_matrix, normal, offset);
        
         std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::DoublePointCursor::cursor_factory(inter_center, second_cursor_center,
-            source, radius, Slic3r::TriangleSelector::CursorType::SPHERE, trafo, clipping_plane);
+            source, radius, Slic3r::TriangleSelector::CursorType::SPHERE, trafo_matrix, clipping_plane);
         bool triangle_splitting_enabled = true;
         Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
@@ -268,13 +301,15 @@ namespace spread
         Slic3r::Vec3f second_cursor_center(second_center.x, second_center.y, second_center.z);
         Slic3r::Vec3f source(camera_pos.x, camera_pos.y, camera_pos.z);
         float radius_world = radius;
+
         Slic3r::Transform3d trafo = Slic3r::Transform3d::Identity();
-        Slic3r::TriangleSelector::ClippingPlane clipping_plane;
-        clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        clipping_plane.offset = offset;
+
+        Slic3r::Transform3d trafo_matrix = trixform_2_slice3rform(m_meshGlobalMatrix);
+
+        Slic3r::TriangleSelector::ClippingPlane clipping_plane = get_clipping_plane_in_mesh_coordinates(trafo_matrix, normal, offset);
 
         std::unique_ptr<Slic3r::TriangleSelector::Cursor> cursor = Slic3r::TriangleSelector::DoublePointCursor::cursor_factory(cursor_center, second_cursor_center,
-            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo, clipping_plane);
+            source, radius_world, Slic3r::TriangleSelector::CursorType::CIRCLE, trafo_matrix, clipping_plane);
 
         bool triangle_splitting_enabled = true;
 
@@ -479,10 +514,21 @@ namespace spread
         }
     }
 
-    void MeshSpreadWrapper::get_height_contour(const trimesh::vec& center, float height, std::vector<std::vector<trimesh::vec3>>& contour)
+    void MeshSpreadWrapper::get_height_contour(const trimesh::vec& worldSpaceCenter, float height, std::vector<std::vector<trimesh::vec3>>& contour)
     {
         std::vector<std::vector<Slic3r::Vec3f>> contou;
-        m_triangle_selector->get_height_lines(center.z, center.z+height, contou);
+
+        Slic3r::Transform3f trafo_matrix = Slic3r::Transform3f::Identity();
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                trafo_matrix(i, j) = m_meshGlobalMatrix[i + j * 4];
+            }
+        }
+
+        m_triangle_selector->get_height_lines(worldSpaceCenter.z, worldSpaceCenter.z+height, contou, trafo_matrix);
+
         for (std::vector<Slic3r::Vec3f>& vtor : contou)
         {
             std::vector<trimesh::vec3> line;
@@ -515,10 +561,9 @@ namespace spread
             propagate = false;
         }
 
-        Slic3r::Transform3d trafo_no_translate = Slic3r::Transform3d::Identity();
-        Slic3r::TriangleSelector::ClippingPlane _clipping_plane;
-        _clipping_plane.normal = Slic3r::Vec3f(normal.x, normal.y, normal.z);
-        _clipping_plane.offset = offset;
+        Slic3r::Transform3d trafo_matrix = trixform_2_slice3rform(m_meshGlobalMatrix);
+
+        Slic3r::TriangleSelector::ClippingPlane _clipping_plane = get_clipping_plane_in_mesh_coordinates(trafo_matrix, normal, offset);
 
         Slic3r::EnforcerBlockerType new_state = Slic3r::EnforcerBlockerType(colorIndex);
         if (facet_start >= 0 && facet_start < m_triangle_selector->getFacetsNum())
@@ -528,7 +573,7 @@ namespace spread
                 m_triangle_selector->seed_fill_select_triangles(
                     Slic3r::Vec3f(center)
                     , facet_start
-                    , trafo_no_translate
+                    , trafo_matrix
                     , _clipping_plane
                     , angle
                     , m_highlight_by_angle_threshold_deg);
@@ -549,13 +594,13 @@ namespace spread
                 std::vector<trimesh::vec> line;
                 int index= edge(0);
                 auto vector = m_triangle_selector->getVectors(index);
-                line.emplace_back(trimesh::vec3(vector.x(), 
+                line.emplace_back(m_meshGlobalMatrix * trimesh::vec3(vector.x(),
                                                 vector.y(), 
                                                 vector.z()));
 
                 index = edge(1);
                 vector = m_triangle_selector->getVectors(index);
-                line.emplace_back(trimesh::vec3(vector.x(), 
+                line.emplace_back(m_meshGlobalMatrix * trimesh::vec3(vector.x(),
                                                 vector.y(), 
                                                 vector.z()));
 
@@ -579,6 +624,16 @@ namespace spread
             return m_triangle_selector->judge_select_triangles();
         }
         return false;
+    }
+
+    void MeshSpreadWrapper::setMeshGlobalMatrix(const trimesh::xform& globalXf)
+    {
+        m_meshGlobalMatrix = globalXf;
+    }
+
+    trimesh::xform MeshSpreadWrapper::getMeshGlobalMatrix()
+    {
+        return m_meshGlobalMatrix;
     }
 
     void MeshSpreadWrapper::get_current_select_contours(std::vector<trimesh::vec3>& contour, const trimesh::vec3& offset)
@@ -696,9 +751,30 @@ namespace spread
 
     int MeshSpreadWrapper::getFacet(const trimesh::vec& point, trimesh::vec& direction, trimesh::vec& cross)
     {
-        Slic3r::Vec3d _point(point.x, point.y,point.z);
+        Slic3r::Transform3d trafo_matrix = Slic3r::Transform3d::Identity();
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                trafo_matrix(i, j) = m_meshGlobalMatrix[i + j * 4];
+            }
+        }
+
+        Slic3r::Vec3d _point(point.x, point.y, point.z);
         Slic3r::Vec3d _direction(direction.x, direction.y, direction.z);
-        Slic3r::sla::IndexedMesh::hit_result hit = m_emesh->query_ray_hit(_point, _direction);
+
+        Slic3r::Transform3d inv = trafo_matrix.inverse();
+        _point = inv * _point;
+
+        _direction = inv.linear() *_direction;
+
+        std::vector<Slic3r::sla::IndexedMesh::hit_result> hits = m_emesh->query_ray_hits(_point, _direction);
+        if (hits.empty())
+        {
+            return -1;
+        }
+
+        Slic3r::sla::IndexedMesh::hit_result hit = hits[0];
         
         if (hit.is_hit())
         {

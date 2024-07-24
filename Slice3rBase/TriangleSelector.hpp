@@ -242,7 +242,7 @@ public:
     float get_vertices_coord(int vert, int idx);
     int get_source_triangle(int facet);
     void set_triangle_state(int facet, EnforcerBlockerType type);
-    void get_height_lines(float z_bot,float z_top, std::vector<std::vector<Vec3f>>& contour);
+    void get_height_lines(float z_bot,float z_top, std::vector<std::vector<Vec3f>>& contour, const Slic3r::Transform3f& globalXf);
     bool get_source_triangles(int facet);
     //---------------
     std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;
