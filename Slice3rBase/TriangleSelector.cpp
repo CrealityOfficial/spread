@@ -1,5 +1,6 @@
 #include "TriangleSelector.hpp"
 #include "Model.hpp"
+#include "Slice3rBase/Point.hpp"
 
 #include <boost/container/small_vector.hpp>
 
@@ -334,7 +335,8 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
 
     const double facet_angle_limit     = cos(Geometry::deg2rad(seed_fill_angle)) - EPSILON;
     const float  highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
-    Vec3f        vec_down              = (trafo_no_translate.inverse() * -Vec3d::UnitZ()).normalized().cast<float>();
+
+    Vec3f   vec_down = (-Vec3d::UnitZ()).normalized().cast<float>();
 
     // Depth-first traversal of neighbors of the face hit by the ray thrown from the mouse cursor.
     while (!facet_queue.empty()) {
@@ -342,7 +344,9 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
         facet_queue.pop();
 
         const Vec3f &facet_normal = m_face_normals[m_triangles[current_facet].source_triangle];
-        if (!visited[current_facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
+        Matrix3f     normal_matrix  = static_cast<Matrix3f>(trafo_no_translate.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
+        Vec3f        world_facet_normal = (normal_matrix * facet_normal).normalized();
+        if (!visited[current_facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(world_facet_normal) >= highlight_angle_limit)) {
             if (m_triangles[current_facet].is_split()) {
                 for (int split_triangle_idx = 0; split_triangle_idx <= m_triangles[current_facet].number_of_split_sides(); ++split_triangle_idx) {
                     assert(split_triangle_idx < int(m_triangles[current_facet].children.size()));
